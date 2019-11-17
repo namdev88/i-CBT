@@ -1,0 +1,32 @@
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo "Log KPI Configuration"
+#--------------------------------------------------
+
+    log
+@{
+       foreach(var kpi in Node.KPILogsList){     // for each accounting policy and its files
+
+@:        file-id @(kpi.KPIFileID)
+if (kpi.KPIFileDescription != "NA") {
+@:            description "@(kpi.KPIFileDescription)"
+}
+@:            location @(kpi.KPIFileLocation): 
+@:            rollover @(kpi.KPIFileRollover) retention @(kpi.KPIFileRetention)
+@:        exit
+@:        accounting-policy @(kpi.AccountingPolicy)	
+if (kpi.KPIDescription != "NA" ){
+@:            description "@(kpi.KPIDescription)" 
+} if (kpi.Record != "NA") {
+@:            record @(kpi.Record) 
+} if (kpi.CollectionInterval != "NA"){
+@:            collection-interval @(kpi.CollectionInterval)
+}
+@:            to file @(kpi.KPIFileID)
+@:            no shutdown 
+@:        exit
+ 
+}}
+    exit

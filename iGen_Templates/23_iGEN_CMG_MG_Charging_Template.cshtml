@@ -1,0 +1,106 @@
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo "Mobile Gateway  Charging profile Configuration"
+#--------------------------------------------------
+  mobile-gateway
+     profile
+            charging
+@{
+    foreach(var var in Node.ChargingList){
+
+	if (var.ChargingNode == "sgw" ){
+@:                sgw-charging @(var.Ccvalue)
+    if (var.ChargingDescription != "NA"){
+@:                description "@(var.ChargingDescription)"
+}
+    if (var.OffLine == "yes" ){
+@:                    off-line
+    if (var.ExcludeZeroVolCdr == "yes"){
+@:                        exclude-zero-vol-cdr
+}
+@:                        enable-offline
+@:                        partial-record-closure-trigger
+@:                            plmn-change
+@:                            rat-change
+@:                            time-limit @(var.TimeLimit)
+@:                            volume-limit @(var.VolumeLimit)
+@:                        exit
+@:                        sgw-change-cause-record-closure
+@:                    exit
+@:                exit
+}} 	  if (var.ChargingNode == "pgw" ){ 
+@:				pgw-charging @(var.Ccvalue)
+@:                    description "@(var.ChargingDescription)"
+@:                    report-serving-node-supplied-cc
+      if (var.OffLine == "yes" ){
+@:                    off-line
+@:                        enable-offline
+      if (var.ExcludeZeroVolCdr == "yes"){
+@:                        exclude-zero-vol-cdr
+}}    if (var.ChargingInfoTrigger == "yes"){
+@:                        charging-info-trigger
+@:                          qos-change
+@:                          volume-limit-per-rating-grp 0
+@:                        exit
+}
+@:                        partial-record-closure-trigger
+@:                            plmn-change
+@:                            rat-change
+@:                            time-limit @(var.TimeLimit)
+@:                            volume-limit @(var.VolumeLimit)
+@:                        exit
+@:                    exit
+     if (var.OnLine == "yes" ) {
+@:                    on-line
+@:                        enable-online
+@:                        dcca-profile "@(var.DccaProfile)"
+if (var.PriOcsDiaPeer != "NA"){
+@:                        pri-ocs-dia-peer "@(var.PriOcsDiaPeer)"
+}
+     if (var.SecOcsDiaPeer != "NA"){
+@:                        sec-ocs-dia-peer "@(var.SecOcsDiaPeer)"
+}
+@:                    exit
+@:                exit
+} if (var.OnLine == "NA" ) {
+@:                exit
+}} if (var.CdrAvpOptions == "yes"){
+@:                cdr-avp-options 1
+@:                    apn-network-id include
+@:                    pdp-pdn-type include
+@:                    served-pdp-pdn-addr include
+@:                    served-pdp-pdn-addr-extension include
+@:                    dynamic-addr-flag include
+@:                    dynamic-addr-flag-extension include
+@:                    list-of-service-data include
+@:                    list-traffic-data-volume include
+@:                    node-id include
+@:                    local-record-seq-no include
+@:                    apn-selection-mode include
+@:                    served-msisdn include
+@:                    charging-char-select-mode include
+@:                    served-imeisv include
+@:                    ms-time-zone include
+@:                    user-location-info include
+@:                    sgw-change include
+@:                    pgw-address include
+@:                    pgw-plmn-id include
+@:                    pdn-connection-charging-id include
+@:                    pdn-pdp-address-prefix-length include
+@:                    rat-type include
+@:                    start-time include
+@:                    stop-time include
+@:                    serving-node-plmn-id include
+@:                    sgw-address include
+@:                    service-context-id "include"
+@:                    pdp-pdn-type-extension include
+@:                exit
+@:                gy-avp-options 1
+@:                    exclude-subscription-id-nai
+@:                exit
+}}}
+         exit
+     exit
+  exit

@@ -1,0 +1,412 @@
+@{
+  var Node = Model;
+}
+
+
+
+
+#--------------------------------------------------
+echo "Router (Network Side) Configuration"
+#--------------------------------------------------
+
+    router "Base"
+        selective-reassembly
+@{
+    foreach (var RB1 in Node.RouterBaseList){  
+    if (RB1.InterfaceType == "Physical1"){
+    @:    interface "@(RB1.InterfaceName)" 
+    @:      description "@(RB1.Description)"	
+    @:      enable-ingress-stats
+	if (RB1.Address != "NA" ){
+    @:      address @(RB1.Address)
+    @:      bfd @(RB1.tx) receive @(RB1.rcv) multiplier @(RB1.multiplier)
+	}
+    if (RB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(RB1.IPv6Address)
+    @:          bfd @(RB1.tx) receive @(RB1.rcv) multiplier @(RB1.multiplier)
+    @:      exit
+    } if (RB1.VLAN != "NA" ){
+    @:      port @(RB1.Port):@(RB1.VLAN)
+    } else {
+    @:      port @(RB1.Port)
+    }
+    @:      no shutdown
+    @:    exit
+    }}}@{
+    foreach (var RB1 in Node.RouterBaseList){  
+    if (RB1.InterfaceType == "Loopback1"){
+    @:    interface "system" 
+    @:      description "@(RB1.Description)"
+	if (RB1.Address != "NA"){
+    @:      address @(RB1.Address)
+	}
+    if (RB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(RB1.IPv6Address)
+    @:      exit
+    } if (RB1.Lag != "NA"){
+    @:      ip-reassembly lag-@(RB1.Lag)
+	}
+    @:      no shutdown
+    @:    exit
+    @:    autonomous-system @(RB1.localAS)
+    @:    ecmp 4
+    @:    router-id  @(RB1.routerid)
+    @:
+    }}}@{
+    foreach (var RB1 in Node.RouterBaseList){  
+    if (RB1.InterfaceType == "Physical2"){
+    @:    interface "@(RB1.InterfaceName)" 
+    @:      description "@(RB1.Description)"	
+    @:      enable-ingress-stats
+    @:      address @(RB1.Address)
+    @:      bfd @(RB1.tx) receive @(RB1.rcv) multiplier @(RB1.multiplier)
+	if (RB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(RB1.IPv6Address)
+    @:          bfd @(RB1.tx) receive @(RB1.rcv) multiplier @(RB1.multiplier)
+    @:      exit
+    } if (RB1.VLAN != "NA" ){
+    @:      port @(RB1.Port):@(RB1.VLAN)
+    } else {
+    @:      port @(RB1.Port)
+    }
+    @:      no shutdown
+    @:    exit
+    }}}@{
+    foreach (var RB1 in Node.RouterBaseList){  
+    if (RB1.InterfaceType == "Loopback2"){
+    @:    interface "system" create
+    @:      description "@(RB1.Description)"
+	if (RB1.Address != "NA"){
+    @:      address @(RB1.Address)
+	}
+    if (RB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(RB1.IPv6Address)
+    @:      exit
+    }if (RB1.Lag != "NA"){
+    @:      ip-reassembly lag-@(RB1.Lag)
+	}
+    @:      no shutdown
+    @:    exit
+    @:    autonomous-system @(RB1.localAS)
+    @:    ecmp 4
+    @:    router-id  @(RB1.routerid)
+    @:
+    }}}
+
+
+#--------------------------------------------------
+echo "Base routing Configuration"
+#--------------------------------------------------
+
+
+@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.RoutingType == "BGP" ){
+    if (RouterBase.InterfaceType == "Loopback1"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+@:        bgp
+
+@:            min-route-advertisement 1
+@:            multipath 4
+@:            group "system"
+if (RouterBase.BGPType == "external"){
+@:              type external
+@:              export system_export
+@:              local-as @(RouterBase.localAS)
+@:              peer-as @(RouterBase.peerAS)
+@:              bfd-enable
+} else {
+@:              type internal
+@:              export system_export
+@:              local-as @(RouterBase.localAS)
+@:              bfd-enable
+}}
+if (RouterBase.InterfaceType == "Physical1"){
+@:              neighbor @(RouterBase.neighbor)
+@:                  local-address @(RouterBase.localAddress)
+@:              exit
+}}}}@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.RoutingType == "BGP" ){
+    if (RouterBase.InterfaceType == "Loopback1"){
+    if (RouterBase.IPv6Address != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+@:            group "system_ipv6"
+if (RouterBase.BGPType == "external"){
+@:              type external
+@:              family ipv6
+@:              export system_export
+@:              local-as @(RouterBase.localAS)
+@:              peer-as @(RouterBase.peerAS)
+@:              bfd-enable
+} else {
+@:              type internal
+@:              family ipv6
+@:              export system_export
+@:              local-as @(RouterBase.localAS)
+@:              bfd-enable
+}}}}}}@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.RoutingType == "BGP" ){
+    if (RouterBase.InterfaceType == "Physical1"){
+    if (RouterBase.IPv6Address != "NA"){
+@:              neighbor @(RouterBase.IPv6neighbor)
+@:                  local-address @(RouterBase.IPv6localAddress)
+@:              exit
+}}}}}@{
+    foreach (var RouterBase in Node.RouterBaseList){ 
+    if (RouterBase.InterfaceType == "Loopback1"){
+	if (RouterBase.RoutingType == "BGP" ){
+@:           exit
+@:           no shutdown
+@:        exit
+}}}}
+@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.RoutingType == "Static" ){
+    if (RouterBase.InterfaceType == "Loopback1"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }
+    if (RouterBase.InterfaceType == "Physical1"){
+@:        static-route-entry 0.0.0.0/0 next-hop @(RouterBase.StaticRouteNextHop) bfd-enable 
+@:        static-route-entry 0.0.0.0/0 next-hop @(RouterBase.StaticRouteNextHop) no shutdown
+}}}}@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.RoutingType == "Static" ){
+    if (RouterBase.InterfaceType == "Loopback1"){
+    if (RouterBase.IPv6Address != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (RouterBase.InterfaceType == "Physical1"){
+    if (RouterBase.IPv6Address != "NA"){
+
+@:        static-route-entry ::/0 next-hop @(RouterBase.IPv6StaticRouteNextHop) bfd-enable 
+@:        static-route-entry ::/0 next-hop @(RouterBase.IPv6StaticRouteNextHop) no shutdown 
+}}}}}
+	
+	@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.InterfaceType == "Loopback1") {
+	if (RouterBase.RoutingType == "OSPF" ){
+	
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(RouterBase.OSPFID) 
+    @:            area @(RouterBase.AreaID)
+    }}} foreach (var RouterBase in Node.RouterBaseList){  
+        if (RouterBase.InterfaceType == "Physical1") {
+        if (RouterBase.RoutingType == "OSPF" ){
+    @:                interface "@(RouterBase.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var RouterBase in Node.RouterBaseList){  
+        if (RouterBase.InterfaceType == "Loopback1") {
+        if (RouterBase.RoutingType == "OSPF" ){
+    @:                interface "@(RouterBase.InterfaceName)"
+    @:                    no shutdown
+    @:                exit	
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}
+
+
+@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.RoutingType == "BGP" ){
+    if (RouterBase.InterfaceType == "Loopback2"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+@:        bgp
+@:            min-route-advertisement 1
+@:            multipath 4
+@:            group "system"
+if (RouterBase.BGPType == "external"){
+@:              type external
+@:              export system_export
+@:              local-as @(RouterBase.localAS)
+@:              peer-as @(RouterBase.localAS)
+@:              bfd-enable
+} else {
+@:              type internal
+@:              export system_export
+@:              local-as @(RouterBase.localAS)
+@:              bfd-enable
+}}
+    if (RouterBase.InterfaceType == "Physical2"){
+@:              neighbor @(RouterBase.neighbor)
+@:                  local-address @(RouterBase.localAddress)
+@:              exit
+}}}}@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.RoutingType == "BGP" ){
+    if (RouterBase.InterfaceType == "Loopback2"){
+    if (RouterBase.IPv6Address != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+@:            group "system_ipv6"
+if (RouterBase.BGPType == "external"){
+@:              type external
+@:              family ipv6
+@:              export system_export
+@:              local-as @(RouterBase.localAS)
+@:              peer-as @(RouterBase.peerAS)
+@:              bfd-enable
+} else {
+@:              type internal
+@:              family ipv6
+@:              export system_export
+@:              local-as @(RouterBase.localAS)
+@:              bfd-enable
+}}}}}}@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.RoutingType == "BGP" ){
+    if (RouterBase.InterfaceType == "Physical2"){
+    if (RouterBase.IPv6Address != "NA"){
+@:              neighbor @(RouterBase.IPv6neighbor)
+@:                  local-address @(RouterBase.IPv6localAddress)
+@:              exit
+}}}}}@{
+    foreach (var RouterBase in Node.RouterBaseList){ 
+    if (RouterBase.InterfaceType == "Loopback2"){
+    if (RouterBase.RoutingType == "BGP" ){
+    if (RouterBase.IPv6Address != "NA"){
+@:           exit
+@:           no shutdown
+@:        exit
+
+}}}}}@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.RoutingType == "Static" ){
+    if (RouterBase.InterfaceType == "Physical2"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+@:        static-route-entry 0.0.0.0/0 next-hop @(RouterBase.StaticRouteNextHop) bfd-enable 
+@:        static-route-entry 0.0.0.0/0 next-hop @(RouterBase.StaticRouteNextHop) no shutdown
+}}}}@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.RoutingType == "Static" ){
+    if (RouterBase.InterfaceType == "Physical2"){
+    if (RouterBase.IPv6Address != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+@:        static-route-entry ::/0 next-hop @(RouterBase.IPv6StaticRouteNextHop) bfd-enable 
+@:        static-route-entry ::/0 next-hop @(RouterBase.IPv6StaticRouteNextHop) no shutdown 
+}}}}}
+
+
+	@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+	if (RouterBase.InterfaceType == "Loopback2") {
+	if (RouterBase.RoutingType == "OSPF" ){
+	
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(RouterBase.OSPFID) 
+    @:            area @(RouterBase.AreaID)
+    }}} foreach (var RouterBase in Node.RouterBaseList){  
+        if (RouterBase.InterfaceType == "Physical2") {
+        if (RouterBase.RoutingType == "OSPF" ){
+    @:                interface "@(RouterBase.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var RouterBase in Node.RouterBaseList){  
+        if (RouterBase.InterfaceType == "Loopback2") {
+        if (RouterBase.RoutingType == "OSPF" ){
+    @:                interface "@(RouterBase.InterfaceName)"
+    @:                    no shutdown
+    @:                exit	
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}
+exit
+
+
+
+@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+    if (RouterBase.InterfaceType == "Loopback1"){
+	if (RouterBase.RoutingType == "BGP"){
+
+	@: #--------------------------------------------------
+	@:  echo "Base  Policy configuration"
+	@: #--------------------------------------------------
+
+
+@:     router
+@:        policy-options
+@:            begin
+@:            prefix-list "systemip"
+@:                prefix @(RouterBase.Address) exact
+if (RouterBase.IPv6Address != "NA"){
+@:                prefix @(RouterBase.IPv6Address) exact
+}
+@:            exit
+@:            policy-statement "system_export"
+@:                entry 5
+@:                    from
+@:                        prefix-list "systemip"
+@:                    exit
+@:                    action accept
+@:                    exit
+@:                exit
+@:                default-action accept
+@:                exit
+@:            exit
+@:            commit
+@:        exit
+}}}}
+@{
+    foreach (var RouterBase in Node.RouterBaseList){  
+    if (RouterBase.InterfaceType == "Loopback2"){
+	if (RouterBase.RoutingType == "BGP"){
+	@: #--------------------------------------------------
+	@:  echo "Base  Policy configuration"
+	@: #--------------------------------------------------
+
+
+@:     router
+@:        policy-options
+@:            begin
+@:            prefix-list "systemip"
+@:                prefix @(RouterBase.Address) exact
+@:            exit
+@:            policy-statement "system_export"
+@:                entry 5
+@:                    from
+@:                        prefix-list "systemip"
+@:                    exit
+@:                    action accept
+@:                    exit
+@:                exit
+@:                default-action accept
+@:                exit
+@:            exit
+@:            commit
+@:        exit
+}}}}

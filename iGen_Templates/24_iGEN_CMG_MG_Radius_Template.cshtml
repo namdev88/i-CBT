@@ -1,0 +1,57 @@
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo "Mobile Gateway  Radius profile Configuration"
+#--------------------------------------------------
+  mobile-gateway
+     profile
+@{
+    foreach (var var in Node.RadiusList) {
+    if (var.RadMultiplePeer == "no") {
+@:            radius-group "@(var.RadGroupName)"
+@:                server-type @(var.RadServerType)
+@:                interface router "vprn@(var.RadVPRN)" "@(var.RadLoopback)"
+@:                peer @(var.RadPeerIP)
+if (var.RadPriority != "NA"){
+@:                    priority @(var.RadPriority)
+} if (var.RadPasswordSecret != "NA"){
+@:                    secret "@(var.RadPasswordSecret)"
+}
+@:                    no shutdown
+@:                exit
+}     if (var.RadMultiplePeer == "yes") {
+@:                peer @(var.RadPeerIP)
+if (var.RadPriority != "NA"){
+@:                    priority @(var.RadPriority)
+} if (var.RadPasswordSecret != "NA"){
+@:                    secret "@(var.RadPasswordSecret)"
+}
+@:                    no shutdown
+@:                exit
+} if (var.RadiusAvpOptions == "yes"){
+@:                radius-avp-options
+@:                    exclude-service-type
+@:                    exclude-framed-protocol
+@:                    exclude-nas-port-type
+@:                    exclude-acct-delay-time
+@:                    exclude-acct-authentic
+@:                    exclude-acct-session-id
+@:                    exclude-3gpp-gprs-negotiated-qos-profile
+@:                    exclude-3gpp-ggsn-mcc-mnc
+@:                    exclude-3gpp-sgsn-ipv6-address
+@:                    exclude-3gpp-ggsn-ipv6-address
+@:                    exclude-user-name
+@:                    exclude-framed-ip-address
+@:                    exclude-framed-ip-netmask
+@:                    exclude-framed-ipv6-prefix
+@:                    exclude-framed-interface-id
+@:                    exclude-class
+@:                    exclude-acct-input-gigawords
+@:                    exclude-acct-output-gigawords
+@:                    include-nas-port-id
+@:                exit
+}}}
+            exit	
+     exit
+  exit

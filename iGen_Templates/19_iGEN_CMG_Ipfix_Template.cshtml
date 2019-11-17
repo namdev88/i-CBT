@@ -1,0 +1,25 @@
+@{
+  var Node = Model;
+}
+
+
+#--------------------------------------------------
+echo "Ipfix Service Configuration"
+#--------------------------------------------------
+
+@{
+    foreach (var var in Node.IpfixList){        
+
+@: service						
+@:		ipfix
+@:            ipfix-export-policy "@(var.ipfixExportPolicyName)" create
+@:                description "@(var.IpfixDescription)"
+@:                template-format format2
+@:                collector router "Base" ip @(var.IpfixCollectorAdd) create
+@:                    source-address @(var.IpfixSourceAdd)
+@:                    no shutdown
+@:                exit
+@:            exit
+@:        exit
+@:  exit
+}}

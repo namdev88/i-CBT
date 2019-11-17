@@ -1,0 +1,53 @@
+
+@{
+    var Node = Model;
+}
+
+
+#--------------------------------------------------
+echo "Mobile Gateway Configuration  Extra"
+#--------------------------------------------------
+    mobile-gateway
+        profile
+            list
+                qci-list "qcilst"
+                        qci 1
+                        qci 2
+                        qci 4
+                        qci 5
+                        qci 6
+                        qci 7
+                        qci 8
+                        qci 9
+                exit
+            exit
+            call-insight
+                ue "CP-only"
+                    description "CP-debug"
+                    events all
+                    format pcap
+                    size-limit 100
+                exit
+            exit
+        exit
+        pdn 1
+@{
+foreach(var var in Node.MGBasicList){     
+if (var.InstanceType == "control"){
+@:            charging
+@:                charging-prof visiting 2
+@:                charging-prof roaming 2
+@:                cc-ignore home
+@:                cdr-avp-options-profile 1
+@:                node-id "@(var.Node_ID)"
+@:            exit
+}}}
+            kpi-kci
+                accounting-policy "1"
+                    collect-stats
+                exit
+            exit
+            up-peer-list "up-list-1"
+            no shutdown
+        exit
+	exit

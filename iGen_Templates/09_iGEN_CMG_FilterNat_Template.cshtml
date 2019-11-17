@@ -1,0 +1,37 @@
+	
+@{
+    var Node = Model;
+}
+
+
+#--------------------------------------------------
+echo "Filter Configuration"
+#--------------------------------------------------
+    filter 
+@{
+
+foreach(var var in Node.NATList){ 
+if (var.RedirectVPRN != "NA"){
+@:        ipv6-filter @(var.RedirectVPRN) name "@(var.RedirectVPRN)" create
+@:            default-action forward
+@:            entry 10 create
+@:                match 
+@:                    dst-ip @(var.SyenthesizedIPSDP1)
+@:                exit 
+@:            exit 
+@:            entry 20 create
+@:                match 
+@:                    dst-ip @(var.SyenthesizedIPSDP2)
+@:                exit 
+@:            exit 
+@:            entry 30 create
+@:                match 
+@:                    dst-ip @(var.SyenthesizedIPNAT)
+@:                exit 
+@:            exit 
+@:         exit
+}}}
+
+        exit 
+
+

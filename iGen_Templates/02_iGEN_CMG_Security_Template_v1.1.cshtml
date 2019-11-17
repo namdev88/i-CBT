@@ -1,0 +1,253 @@
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo "System Security Configuration"
+#--------------------------------------------------
+
+  system
+        security
+            profile "Read-only"
+                default-action permit-all
+                entry 1
+                    match "configure"
+                    action deny
+                exit
+                entry 2
+                    match "admin display-config"
+                    action permit
+                exit
+                entry 3
+                    match "admin"
+                    action deny
+                exit
+                entry 4
+                    match "tools"
+                    action deny
+                exit
+                entry 5
+                    match "file dir"
+                    action permit
+                exit
+                entry 6
+                    match "file"
+                    action deny
+                exit
+                entry 7
+                    match "debug"
+                    action deny
+                exit
+            exit
+            profile "Read-Write"
+                default-action permit-all
+                entry 1
+                    description "configure system security"
+                    match "configure system security password"
+                    action deny
+                exit
+                entry 2
+                    description "configure system security password"
+                    match "configure system security radius"
+                    action deny
+                exit
+                entry 3
+                    match "configure system security tacplus"
+                    action deny
+                exit
+                entry 4
+                    match "configure system security profile"
+                    action deny
+                exit
+                entry 5
+                    match "configure system security user"
+                    action deny
+                exit
+                entry 6
+                    match "configure system security ssh"
+                    action deny
+                exit
+                entry 7
+                    match "configure system security telnet-server"
+                    action deny
+                exit
+                entry 8
+                    match "configure system security telnet6-server"
+                    action deny
+                exit
+                entry 10
+                    match "configure system security ftp-server"
+                    action deny
+                exit
+                entry 11
+                    match "configure system security hash-control"
+                    action deny
+                exit
+                entry 12
+                    match "tools perform security"
+                    action permit
+                exit
+                entry 13
+                    match "configure li"
+                    action deny
+                exit
+                entry 14
+                    match "show li"
+                    action deny
+                exit
+                entry 15
+                    match "configure system security snmp"
+                    action deny
+                exit
+                entry 16
+                    match "configure system security"
+                    action permit
+                exit
+                entry 17
+                    match "show system security"
+                    action permit
+                exit
+                entry 20
+                    match "password"
+                    action deny
+                exit
+                entry 21
+                    match "exec"
+                    action deny
+                exit
+                entry 22
+                    match "admin display-config"
+                    action permit
+                exit
+                entry 23
+                    match "admin save"
+                    action permit
+                exit
+                entry 24
+                    match "admin tech-support"
+                    action permit
+                exit
+                entry 25
+                    match "admin"
+                    action deny
+                exit
+            exit
+            profile "li-profile"
+                default-action deny-all
+                li
+                entry 20
+                    match "configure li"
+                    action permit
+                exit
+                entry 30
+                    match "show li"
+                    action permit
+                exit
+                entry 40
+                    match "info"
+                    action permit
+                exit
+                entry 50
+                    match "back"
+                    action permit
+                exit
+                entry 60
+                    match "exit"
+                    action permit
+                exit
+                entry 70
+                    match "show log"
+                    action permit
+                exit
+                entry 80
+                    match "bof li-separate"
+                    action deny
+                exit
+                entry 90
+                    match "bof li-local-save"
+                    action deny
+                exit
+                entry 100
+                    match "configure li save"
+                    action permit
+                exit
+                entry 110
+                    match "clear li"
+                    action permit
+                exit
+            exit
+            password
+                aging 180
+                attempts 5 time 5 lockout 10
+                history-size 5
+                complexity-rules
+                    minimum-length 8
+                    required lowercase 1 uppercase 1 numeric 1 special-character 1
+                exit
+            exit
+            tech-support
+                ts-location "cf2:\TSfile"
+            exit
+@{
+       foreach(var usr in Node.SecurityList){     // for each user 
+	      
+@:            user "@(usr.UserName)"
+@:                password "@(usr.UserPassword)"
+if (usr.AccessConsole == "yes" && usr.AccessFTP == "yes" && usr.AccessSNMP == "yes" && usr.AccessLI == "yes" && usr.AccessNetconf == "yes"){
+@:                access console ftp snmp li netconf 
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "yes" && usr.AccessSNMP == "yes" && usr.AccessLI == "yes" && usr.AccessNetconf == "no"){
+@:                access console ftp snmp li 
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "yes" && usr.AccessSNMP == "yes" && usr.AccessLI == "no" && usr.AccessNetconf == "no"){
+@:                access console ftp snmp
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "yes" && usr.AccessSNMP == "no" && usr.AccessLI == "no" && usr.AccessNetconf == "no"){
+@:                access console ftp
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "no" && usr.AccessSNMP == "yes" && usr.AccessLI == "no" && usr.AccessNetconf == "no"){
+@:                access console snmp
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "no" && usr.AccessSNMP == "no" && usr.AccessLI == "yes" && usr.AccessNetconf == "no"){
+@:                access console li
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "no" && usr.AccessSNMP == "no" && usr.AccessLI == "no" && usr.AccessNetconf == "yes"){
+@:                access console netconf
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "no" && usr.AccessSNMP == "yes" && usr.AccessLI == "yes" && usr.AccessNetconf == "yes"){
+@:                access console snmp li netconf
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "no" && usr.AccessSNMP == "yes" && usr.AccessLI == "yes" && usr.AccessNetconf == "no"){
+@:                access console snmp li 
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "no" && usr.AccessSNMP == "yes" && usr.AccessLI == "no" && usr.AccessNetconf == "yes"){
+@:                access console snmp netconf
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "no" && usr.AccessSNMP == "no" && usr.AccessLI == "yes" && usr.AccessNetconf == "yes"){
+@:                access console li netconf
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "yes" && usr.AccessSNMP == "yes" && usr.AccessLI == "no" && usr.AccessNetconf == "yes"){
+@:                access console ftp snmp netconf
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "yes" && usr.AccessSNMP == "no" && usr.AccessLI == "yes" && usr.AccessNetconf == "yes"){
+@:                access console ftp li netconf
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "yes" && usr.AccessSNMP == "no" && usr.AccessLI == "no" && usr.AccessNetconf == "yes"){
+@:                access console ftp netconf
+} else if (usr.AccessConsole == "yes" && usr.AccessFTP == "yes" && usr.AccessSNMP == "no" && usr.AccessLI == "yes" && usr.AccessNetconf == "no"){
+@:                access console ftp li
+} else {
+@:                access console 
+}
+@:                console
+if (usr.DefaultConsoleMember == "no"){
+@:                    no member "default"
+} if (usr.DefaultConsoleMember == "yes"){
+@:                    member "default"
+} if (usr.ConsoleMember1 != "NA") {
+@:                    member "@(usr.ConsoleMember1)"
+} if (usr.ConsoleMember2 != "NA"){
+@:                    member "@(usr.ConsoleMember2)"
+}
+@:                exit
+if (usr.PasswordNeverAging = "yes"){
+@:                password-parameters
+@:                    aging never-expire
+@:                exit
+}
+@:            exit
+}}
+           ssh
+               preserve-key
+            exit	
+       exit		
+    exit
+
+			
+		

@@ -1,0 +1,119 @@
+
+	
+#--------------------------------------------------
+echo "Mobile Gateway Configuration Extra"
+#--------------------------------------------------
+
+
+    mobile-gateway
+        system
+            policer-distribution dl-only 20
+        exit
+        profile
+            policy-options
+                begin
+                qci-policy "QCI-Policy"
+                    description "Generic model for SPGW"
+                    qci 1
+                        dscp ef
+                        no dscp-preserve
+                        fc "ef"
+                    exit
+                    qci 2
+                        dscp af41
+                        no dscp-preserve
+                        fc "h1"
+                    exit
+                    qci 3
+                        dscp af41
+                        no dscp-preserve
+                        fc "h1"
+                    exit
+                    qci 4
+                        dscp af41
+                        no dscp-preserve
+                    exit
+                    qci 5
+                        dscp ef
+                        no dscp-preserve
+                        fc "ef"
+                    exit
+                    qci 6
+                        dscp af11
+                        no dscp-preserve
+                    exit
+                    qci 7
+                        dscp af11
+                        no dscp-preserve
+                    exit
+                    qci 8
+                        dscp af11
+                        no dscp-preserve
+                        fc "af"
+                    exit
+                    qci 9
+                        dscp af11
+                        no dscp-preserve
+                        fc "af"
+                    exit
+                exit
+                qci-policy "QCI-Policy-DSCP-preserve"
+                    description "QCI policy to preserve DSCP values coming from far end"
+                    qci 1
+                        dscp-preserve preserve-user-plane
+                        fc "ef"
+                    exit
+                    qci 2
+                        dscp-preserve preserve-user-plane
+                        fc "h1"
+                    exit
+                    qci 3
+                        dscp-preserve preserve-user-plane
+                        fc "h1"
+                    exit
+                    qci 4
+                        dscp-preserve preserve-user-plane
+                    exit
+                    qci 5
+                        dscp-preserve preserve-user-plane
+                        fc "ef"
+                    exit
+                    qci 6
+                        dscp-preserve preserve-user-plane
+                    exit
+                    qci 7
+                        dscp-preserve preserve-user-plane
+                    exit
+                    qci 8
+                        dscp-preserve preserve-user-plane
+                        fc "af"
+                    exit
+                    qci 9
+                        dscp-preserve preserve-user-plane
+                        fc "af"
+                    exit
+                exit
+			exit
+            call-insight
+                ue "UserPlane-Traffic"
+                    description "Capturing Userplane traffic"
+                    user-traffic internal
+                    user-traffic ingress
+                    user-traffic egress
+                    events all
+                    format pcap
+                    size-limit 100
+                exit
+            exit
+        exit
+        pdn 1
+            charging
+                cc-ignore home
+			exit
+            kpi-kci
+                accounting-policy "1"
+                    collect-stats
+                exit
+            exit
+        exit
+	exit

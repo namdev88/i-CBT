@@ -1,0 +1,60 @@
+
+@{
+    var Node = Model;
+}
+
+
+#--------------------------------------------------
+echo "Port Configuration"
+#--------------------------------------------------
+
+
+@{
+
+foreach(var var in Node.PortsList){     
+
+@:    port @(var.Port)
+@:        description "@(var.PortDescription)"
+@:        ethernet
+if (var.PortMode == "hybrid" || var.PortMode == "access"){
+@:            mode @(var.PortMode)
+}
+if (var.PortEncapType != "NA"){
+@:            encap-type @(var.PortEncapType)
+} if (var.PortMtu != "NA"){
+@:            mtu @(var.PortMtu)
+}
+@:        exit
+@:        no shutdown
+@:    exit
+}}
+
+#--------------------------------------------------
+echo "LAG Configuration"
+#--------------------------------------------------
+@{
+
+foreach(var var in Node.PortsList){
+if (var.Port == "3/3/1"){     
+@:    lag 1
+@:        description "Access LAG for redundant pkt-reassembly ISA MDAs"
+@:        mode access
+@:        encap-type dot1q
+@:        port 1/2/2 
+@:        port 2/2/2 
+@:        no shutdown
+@:    exit
+@:    lag 2
+@:        description "Network LAG for redundant pkt-reassembly ISA MDAs"
+@:        encap-type dot1q
+@:        port 1/2/1 
+@:        port 2/2/1 
+@:        no shutdown
+@:    exit
+}}}
+#-------------------------------------------
+echo "Redundancy Configuration"
+#--------------------------------------------------
+    redundancy 
+        synchronize config
+    exit 

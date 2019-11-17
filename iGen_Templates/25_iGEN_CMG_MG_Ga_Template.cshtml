@@ -1,0 +1,52 @@
+
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo "Mobile Gateway  Ga profile Configuration"
+#--------------------------------------------------
+  mobile-gateway
+     profile
+@{
+    foreach(var var in Node.GaList){
+    if (var.GaMultiplePeer == "no") {
+@:            gtp-prime-group "@(var.GTPPrimeGroupName)"
+@:                interface router "vprn@(var.GaVPRN)" "@(var.GaLoopback)"
+@:                local-cdr-storage
+@:                    file-params
+@:                        closure-rec-num @(var.ClosureRecordNumber)
+@:                        closure-size @(var.ClosureSize)
+@:                    exit
+@:                    location @(var.Primarylocation)
+@:                        primary
+@:                    exit
+@:                exit
+@:                gtp-prime-server @(var.GTPServerIP) port @(var.GTPServePort)
+if (var.EnableGtpv2 == "yes"){
+@:                    enable-gtpv2
+} if (var.NodeAlive == "yes"){
+@:                    node-alive
+}
+@:                    priority @(var.GaPriority)
+@:                    no shutdown
+@:                exit
+} if (var.GaMultiplePeer == "yes") {
+@:                gtp-prime-server @(var.GTPServerIP) port @(var.GTPServePort)
+if (var.EnableGtpv2 == "yes"){
+@:                    enable-gtpv2
+} if (var.NodeAlive == "yes"){
+@:                    node-alive
+}
+@:                    priority @(var.GaPriority)
+@:                    no shutdown
+@:                exit
+}
+    if (var.GaMultiplePeer == "yes") {
+@:                no shutdown
+@:            exit
+}     if (var.GaMultiplePeer == "NA") {
+@:                no shutdown
+@:            exit
+}}}
+     exit
+  exit

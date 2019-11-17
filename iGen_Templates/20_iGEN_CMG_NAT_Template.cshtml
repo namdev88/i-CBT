@@ -1,0 +1,223 @@
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo "ISA Configuration"
+#--------------------------------------------------
+@{
+foreach(var var in Node.NATList){  
+
+if (var.NatGroup == "1" && var.MgGroup == "1"){
+@:    isa
+@:        nat-group 1 create
+@:            description "MGgrp1 NAT"
+@:            active-mda-limit 1
+@:            local-nat
+@:            mda 3/4
+@:            mda 4/4
+@:            no shutdown
+@:        exit
+}  if (var.NatGroup == "2" && var.MgGroup == "2"){
+@:        nat-group 2 create
+@:            description "MGgrp2 NAT"
+@:            active-mda-limit 1
+@:            local-nat
+@:            mda 5/4
+@:            mda 6/4
+@:            no shutdown
+@:        exit
+}if (var.NatGroup == "3" && var.MgGroup == "3"){
+@:        nat-group 3 create
+@:            description "MGgrp3 NAT"
+@:            active-mda-limit 1
+@:            local-nat
+@:            mda 7/4
+@:            mda 8/4
+@:            no shutdown
+@:        exit
+}if (var.NatGroup == "4" && var.MgGroup == "4"){
+@:        nat-group 4 create
+@:            description "MGgrp4 NAT"
+@:            active-mda-limit 1
+@:            local-nat
+@:            mda 9/4
+@:            mda 10/4
+@:            no shutdown
+@:        exit
+}if (var.NatGroup == "5" && var.MgGroup == "5"){
+@:        nat-group 5 create
+@:            description "MGgrp3 NAT"
+@:            active-mda-limit 1
+@:            local-nat
+@:            mda 11/4
+@:            mda 12/4
+@:            no shutdown
+@:        exit
+} if (var.NatGroup == "6" && var.MgGroup == "6"){
+@:        nat-group 6 create
+@:            description "MGgrp6 NAT"
+@:            active-mda-limit 1
+@:            local-nat
+@:            mda 13/4
+@:            mda 14/4
+@:            no shutdown
+@:        exit
+}if (var.NatGroup == "7" && var.MgGroup == "7"){
+@:        nat-group 7 create
+@:            description "MGgrp7 NAT"
+@:            active-mda-limit 1
+@:            local-nat
+@:            mda 15/4
+@:            mda 16/4
+@:            no shutdown
+@:        exit
+}if (var.NatGroup == "8" && var.MgGroup == "7"){
+@:        nat-group 8 create
+@:            description "MGgrp8 NAT"
+@:            active-mda-limit 1
+@:            local-nat
+@:            mda 17/4
+@:            mda 18/4
+@:            no shutdown
+@:        exit
+}if (var.NatGroup == "9" && var.MgGroup == "9"){
+@:        nat-group 9 create
+@:            description "MGgrp9 NAT"
+@:            active-mda-limit 1
+@:            local-nat
+@:            mda 19/4
+@:            mda 20/4
+@:            no shutdown
+@:        exit
+}}}
+    exit
+
+
+#--------------------------------------------------
+echo "NAT (Declarations) and UPnP Configuration"
+#--------------------------------------------------
+    service
+        nat
+@{
+
+foreach(var var in Node.NATList){  
+
+@:            nat-policy "@(var.NatPolicyName)" create
+@:            exit
+}}
+        exit
+    exit
+
+
+#--------------------------------------------------
+echo "NAT VPRNs Configuration"
+#--------------------------------------------------
+    service
+@{
+
+foreach(var var in Node.NATList){
+ 
+@:        vprn @(var.OutsideVPRN) 
+@:            nat
+@:                outside
+if (var.MultipPool == "no"){
+@:                    pool "@(var.OutsideIpPoolName)" nat-group @(var.NatGroup) type large-scale create 
+@:                        port-reservation blocks 120 
+@:                        subscriber-limit 120
+@:                        address-range @(var.AddressRangeStart) @(var.AddressRangeEnd) create
+@:                        exit
+@:                        no shutdown
+@:                    exit
+}if (var.MultipPool == "yes"){
+@:                    pool "@(var.OutsideIpPoolName)" nat-group @(var.NatGroup) type large-scale create 
+@:                        address-range @(var.AddressRangeStart) @(var.AddressRangeEnd) create
+@:                        exit
+@:                        no shutdown
+@:                    exit
+}
+@:                exit
+@:            exit
+@:        exit
+
+}}
+
+@{
+
+foreach(var var in Node.NATList){
+
+
+@:        nat
+@:            nat-policy "@(var.NatPolicyName)" 
+if (var.BlockLimit != "NA"){
+@:                block-limit @(var.BlockLimit)
+}
+@:                pool "@(var.OutsideIpPoolName)" router @(var.OutsideVPRN)
+@:                ipfix-export-policy "@(var.IpfixCollectorName)"
+@:                timeouts
+@:                    tcp-established min 10 
+@:                exit
+@:                tcp-mss-adjust 1380
+@:            exit
+@:        exit 
+
+}}
+@{
+
+foreach(var var in Node.NATList){
+
+if (var.MultipPool == "no"){
+
+@:        vprn @(var.RedirectVPRN) 
+@:            nat
+@:                inside
+@:                    nat-policy "@(var.NatPolicyName)"
+@:                    nat64
+@:                        prefix @(var.SyenthesizedIPNAT)
+@:                        no shutdown
+@:                    exit
+@:                exit
+@:            exit
+@:            no shutdown
+@:        exit
+@:        vprn @(var.InsideVPRN) 
+@:            nat
+@:                inside
+@:                    nat-policy "@(var.NatPolicyName)"
+@:                    destination-prefix 0.0.0.0/0 nat-policy "@(var.NatPolicyName)"
+@:                    destination-prefix 10.168.92.0/25 nat-policy "@(var.NatPolicyName)-SDP"
+@:                    destination-prefix 10.168.93.0/24 nat-policy "@(var.NatPolicyName)-SDP"
+@:                    exit
+@:                exit
+@:            exit
+
+}}}
+exit
+
+
+#--------------------------------------------------
+echo "Filter Configuration"
+#--------------------------------------------------
+    filter 
+@{
+
+foreach(var var in Node.NATList){ 
+if (var.RedirectVPRN != "NA"){	
+@:        ipv6-filter @(var.RedirectVPRN) name "@(var.RedirectVPRN)" create
+@:           entry 10 create
+@:               action
+@:                   nat nat-type nat64 nat-policy "@(var.NatPolicyName)-SDP"
+@:               exit
+@:           exit 
+@:           entry 20 create
+@:               action
+@:                   nat nat-type nat64 nat-policy "@(var.NatPolicyName)-SDP"
+@:               exit
+@:           exit 
+@:           entry 30 create
+@:               action
+@:                   nat nat-type nat64 nat-policy "@(var.NatPolicyName)"
+@:               exit
+@:            exit 
+@:      exit
+}}}
+        exit 

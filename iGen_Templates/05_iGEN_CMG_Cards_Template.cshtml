@@ -1,0 +1,64 @@
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo "Card Configuration"
+#--------------------------------------------------
+
+@{
+    foreach(var card in Node.CardsList){     // for each card of node
+
+    @:  card @(card.CardSlot)
+    @:      card-type @(card.CardType)
+    @:      no shutdown
+    @:      mda 1
+    @:          mda-type @(card.Mda1Type)
+    @:          no shutdown
+    @:          exit
+	if (card.Mda2Type != "NA"){
+    @:      mda 2
+    @:          mda-type @(card.Mda2Type)
+    @:          no shutdown
+    @:          exit
+	}	if (card.Mda3Type != "NA"){
+    @:      mda 3
+    @:          mda-type @(card.Mda3Type)
+    @:          no shutdown
+    @:          exit
+	} 	if (card.Mda4Type != "NA"){
+    @:      mda 4
+    @:          mda-type @(card.Mda4Type)
+    @:          no shutdown
+    @:          exit
+	}
+    @:      exit
+}}
+
+
+#--------------------------------------------------
+echo "ISA Configuration"
+#--------------------------------------------------
+@{
+    foreach(var card in Node.CardsList){
+    if (card.CardSlot == "3" && card.Mda2Type == "isa-aa-v"){	
+    @:    isa
+    @:       application-assurance-group 1 aa-sub-scale mobile-gateway create
+	}} foreach(var card in Node.CardsList){
+	if (card.Mda2Type == "isa-aa-v"){
+    @:           primary @(card.CardSlot)/2
+	}} foreach(var card in Node.CardsList){
+      if (card.CardSlot == "3" && card.Mda2Type == "isa-aa-v"){	
+    @:           shared-resources
+    @:               tcp-adv-func 0
+    @:           exit
+    @:           partitions
+    @:            statistics
+    @:                performance
+    @:                    accounting-policy 6
+    @:                    collect-stats
+    @:                exit
+    @:            exit
+    @:           no shutdown
+    @:       exit
+    @:    exit
+	}}}

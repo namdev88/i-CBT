@@ -1,0 +1,81 @@
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo "Mobile Gateway  APN PDN Configuration"
+#--------------------------------------------------
+
+    mobile-gateway
+        system
+            policer-distribution dl-only 20
+        exit
+        pdn 1
+@{
+    foreach(var var in Node.APNsList){
+
+@:            apn "@(var.APN)"
+if (var.VirtualAPN == "no" ){
+if (var.GiVPRN == "NA") {
+@:                idle-timeout @(var.IdleTimer)
+@:                charging
+@:                    charging-prof home 1
+@:                    charging-prof visiting 2
+@:                    charging-prof roaming 2
+@:                    cc-ignore any enable
+@:                    gtp-prime-group "PGW-Ga-OFCS-Peer"
+@:                    cdr-avp-options-profile 1
+@:                exit
+@:                pco-option
+@:                    dns-server-ipv4
+@:                        primary @(var.PrimDNSIPIPv4)
+if (var.SecDNSIPIPv4 != "NA"){
+@:                        secondary @(var.SecDNSIPIPv4)
+}
+@:                    exit
+if (var.PrimDNSIPIPv6 != "NA"){
+@:                    dns-server-ipv6
+@:                        primary @(var.PrimDNSIPIPv6)
+if (var.SecDNSIPIPv6 != "NA"){
+@:                        secondary @(var.SecDNSIPIPv6)
+}
+@:                    exit
+}
+@:                exit
+  if (var.GxEnabled == "yes"){
+@:                pcrf-selection
+@:                    dynamic-pcc fh-session disable fh-3xxx enable fh-4xxx disable
+@:                    primary-diameter-peer "@(var.GxPrimPeerName)"
+if (var.GxSecPeerName != "NA" ){
+@:                    secondary-diameter-peer "@(var.GxSecPeerName)"
+}
+@:                exit
+}
+@:                ip-alloc-method local-pool hss-static
+@:                pdn-type ipv4 ipv6 ipv4v6
+@:                selection-mode subscribed-apn ms-provided-apn network-provided-apn
+if (var.SessionTimeout != "NA"){
+}
+@:                hybrid-access
+@:                exit
+if (var.PfcpTranslateProfile != "NA" ){
+@:                pfcp-translate-tx "@(var.PfcpTranslateProfile)"
+}
+@:                no shutdown
+@:            exit
+}} if (var.GiVPRN != "NA") {
+@:                router "vprn@(var.GiVPRN)"
+@:                    ip-local-pool "@(var.GiIPPoolName)"
+@:                exit
+@:                ambr-policing ul-and-dl
+@:                no shutdown
+@:            exit
+}
+ if (var.VirtualAPN == "yes" ){
+@:                virtual-apn "testwww"
+@:                hybrid-access
+@:                exit
+@:                no shutdown
+@:            exit
+}}}
+     exit
+  exit

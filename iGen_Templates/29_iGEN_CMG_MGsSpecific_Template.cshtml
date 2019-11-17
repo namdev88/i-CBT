@@ -1,0 +1,394 @@
+@{
+  var Node = Model;
+}
+#--------------------------------------------------
+echo "Mobile Gateway MGs Specific Configuration"
+#--------------------------------------------------
+
+    mobile-gateway
+       pdn 1
+@{  
+    foreach (var DG1 in Node.MGsSpecificList){ 
+   if  (DG1.Interface != "NA"){
+   @:         @(DG1.Interface) "@(DG1.MGsRefPointName)" group-specific
+   @:            interface
+   @:                gtp-u router "vprn@(DG1.MGsVPRN)" "@(DG1.MGsRefLoopbackInterface)"
+   @:             exit
+   @:         exit	
+   if (DG1.Interface == "s1-u"){
+   @:         @(DG1.Interface) "@(DG1.MGsRefPointName)" group-specific
+   @:            interface
+   @:                gtp-u router "vprn@(DG1.MGsVPRN)" "@(DG1.MGsRefLoopbackInterface)"
+   @:             exit
+   @:                signaling
+   @:                    gtp-u
+   @:                        profile "@(DG1.ReferanceProfile)"
+   @:                    exit
+   @:                exit
+   @:         exit	
+  
+   }}} foreach (var DG1 in Node.MGsSpecificList){ 
+     if (DG1.Interface == "gn" && DG1.MGgroup == "1"){
+   @:        override-profile @(DG1.MGgroup)
+   @:           description "Def_Prof MG Group @(DG1.MGgroup)"
+   } if (DG1.MGgroup == "1" && DG1.Interface != "NA" ){
+   if (DG1.Interface == "s1-u"){
+    @:          override ref-point-type s1u "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"  
+    } else {  
+   @:           override ref-point-type @(DG1.Interface) "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"
+   }}}    foreach (var DG1 in Node.MGsSpecificList){
+     if (DG1.Interface == "gn" && DG1.MGgroup == "2"){
+   @:        exit
+   @:        override-profile @(DG1.MGgroup)
+   @:           description "Def_Prof MG Group @(DG1.MGgroup)"
+   } if (DG1.MGgroup == "2" && DG1.Interface != "NA"){
+   if (DG1.Interface == "s1-u"){
+    @:          override ref-point-type s1u "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"  
+    } else {  
+   @:           override ref-point-type @(DG1.Interface) "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"
+   }}}   foreach (var DG1 in Node.MGsSpecificList){  
+   if (DG1.Interface == "gn" && DG1.MGgroup == "3"){
+   @:        exit
+   @:        override-profile @(DG1.MGgroup)
+   @:           description "Def_Prof MG Group @(DG1.MGgroup)"
+   } if (DG1.MGgroup == "3" && DG1.Interface != "NA"){
+   if (DG1.Interface == "s1-u"){
+    @:          override ref-point-type s1u "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"  
+    } else {  
+   @:           override ref-point-type @(DG1.Interface) "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"
+   }}}    foreach (var DG1 in Node.MGsSpecificList){
+   if (DG1.Interface == "gn" && DG1.MGgroup == "4"){
+   @:        exit
+   @:        override-profile @(DG1.MGgroup)
+   @:           description "Def_Prof MG Group @(DG1.MGgroup)"
+   } if (DG1.MGgroup == "4" && DG1.Interface != "NA"){
+   if (DG1.Interface == "s1-u"){
+    @:          override ref-point-type s1u "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"  
+    } else {  
+   @:           override ref-point-type @(DG1.Interface) "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"
+   }}}  foreach (var DG1 in Node.MGsSpecificList){
+   if (DG1.Interface == "gn" && DG1.MGgroup == "5"){
+   @:        exit
+   @:        override-profile @(DG1.MGgroup)
+   @:           description "Def_Prof MG Group @(DG1.MGgroup)"
+   } if (DG1.MGgroup == "5" && DG1.Interface != "NA" ){
+   if (DG1.Interface == "s1-u"){
+    @:          override ref-point-type s1u "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"  
+    } else {  
+   @:           override ref-point-type @(DG1.Interface) "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"
+   }}} foreach (var DG1 in Node.MGsSpecificList){
+   if (DG1.Interface == "gn" && DG1.MGgroup == "6"){
+   @:        exit
+   @:        override-profile @(DG1.MGgroup)
+   @:           description "Def_Prof MG Group @(DG1.MGgroup)"
+   } if (DG1.MGgroup == "6" && DG1.Interface != "NA"){
+   if (DG1.Interface == "s1-u"){
+    @:          override ref-point-type s1u "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"  
+    } else {  
+   @:           override ref-point-type @(DG1.Interface) "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"
+   }}} foreach (var DG1 in Node.MGsSpecificList){
+   if (DG1.Interface == "gn" && DG1.MGgroup == "7"){
+   @:        exit
+   @:        override-profile @(DG1.MGgroup)
+   @:           description "Def_Prof MG Group @(DG1.MGgroup)"
+   } if (DG1.MGgroup == "7" && DG1.Interface != "NA" ){
+   if (DG1.Interface == "s1-u"){
+    @:          override ref-point-type s1u "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"  
+    } else {  
+   @:           override ref-point-type @(DG1.Interface) "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"
+   }}} foreach (var DG1 in Node.MGsSpecificList){
+   if (DG1.Interface == "gn" && DG1.MGgroup == "8"){
+   @:        exit
+   @:        override-profile @(DG1.MGgroup)
+   @:           description "Def_Prof MG Group @(DG1.MGgroup)"
+   } if (DG1.MGgroup == "8" && DG1.Interface != "NA" ){
+   if (DG1.Interface == "s1-u"){
+    @:          override ref-point-type s1u "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"  
+    } else {  
+   @:           override ref-point-type @(DG1.Interface) "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"
+   }}} 
+   foreach (var DG1 in Node.MGsSpecificList){
+   if (DG1.Interface == "gn" && DG1.MGgroup == "9"){
+   @:        exit
+   @:        override-profile @(DG1.MGgroup)
+   @:           description "Def_Prof MG Group @(DG1.MGgroup)"
+   } if (DG1.MGgroup == "9" && DG1.Interface != "NA"){
+   if (DG1.Interface == "s1-u"){
+    @:          override ref-point-type s1u "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"  
+    } else {  
+   @:           override ref-point-type @(DG1.Interface) "@(DG1.RefPointName)" with "@(DG1.MGsRefPointName)"
+   }}}
+
+   foreach (var DG1 in Node.MGsSpecificList){
+     if (DG1.Interface == "gn" && DG1.MGgroup == "1") {
+   @:       exit
+  }} foreach (var DG1 in Node.MGsSpecificList){
+     if (DG1.Interface == "gn" && DG1.MGgroup == "1") {
+@:	   exit
+@:       system
+@:         group 1 redundancy one-to-one gateway 1
+@:            override-profile 1
+@:            card 3 working
+@:            card 4 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 1
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+}  if (DG1.Interface == "gn" && DG1.MGgroup == "2") {
+
+@:         group 2 redundancy one-to-one gateway 1
+@:            override-profile 2
+@:            card 5 working
+@:            card 6 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 2
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+}  if (DG1.Interface == "gn" && DG1.MGgroup == "3") {
+
+@:         group 3 redundancy one-to-one gateway 1
+@:            override-profile 3
+@:            card 7 working
+@:            card 8 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 3
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+}  if (DG1.Interface == "gn" && DG1.MGgroup == "4") {
+
+@:         group 4 redundancy one-to-one gateway 1
+@:            override-profile 4
+@:            card 9 working
+@:            card 10 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 4
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+}  if (DG1.Interface == "gn" && DG1.MGgroup == "5") {
+
+@:         group 5 redundancy one-to-one gateway 1
+@:            override-profile 5
+@:            card 11 working
+@:            card 12 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 5
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+}  if (DG1.Interface == "gn" && DG1.MGgroup == "6") {
+
+@:         group 6 redundancy one-to-one gateway 1
+@:            override-profile 6
+@:            card 13 working
+@:            card 14 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 6
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+}  if (DG1.Interface == "gn" && DG1.MGgroup == "7") {
+
+@:         group 7 redundancy one-to-one gateway 1
+@:            override-profile 7
+@:            card 15 working
+@:            card 16 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 7
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+}  if (DG1.Interface == "gn" && DG1.MGgroup == "8") {
+
+@:         group 8 redundancy one-to-one gateway 1
+@:            override-profile 8
+@:            card 17 working
+@:            card 18 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 8
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+}  if (DG1.Interface == "gn" && DG1.MGgroup == "9") {
+
+@:         group 9 redundancy one-to-one gateway 1
+@:            override-profile 9
+@:            card 19 working
+@:            card 20 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 9
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+
+}   if (DG1.Interface == "NA" && DG1.MGgroup == "1") {
+
+@:	   exit
+@:       system
+@:         group 1 redundancy one-to-one gateway 1
+@:            card 3 working
+@:            card 4 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 1
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+
+} if (DG1.Interface == "NA" && DG1.MGgroup == "2") {
+
+@:         group 2 redundancy one-to-one gateway 1
+@:            card 5 working
+@:            card 6 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 2
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+} if (DG1.Interface == "NA" && DG1.MGgroup == "3") {
+
+@:         group 3 redundancy one-to-one gateway 1
+@:            card 7 working
+@:            card 8 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 3
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+}  if (DG1.Interface == "NA" && DG1.MGgroup == "4") {
+
+@:         group 4 redundancy one-to-one gateway 1
+@:            card 9 working
+@:            card 10 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 4
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+} if (DG1.Interface == "NA" && DG1.MGgroup == "5") {
+
+@:         group 5 redundancy one-to-one gateway 1
+@:            card 11 working
+@:            card 12 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 5
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+} if (DG1.Interface == "NA" && DG1.MGgroup == "6") {
+
+@:         group 6 redundancy one-to-one gateway 1
+@:            card 13 working
+@:            card 14 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 6
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+} if (DG1.Interface == "NA" && DG1.MGgroup == "7") {
+
+@:         group 7 redundancy one-to-one gateway 1
+@:            card 15 working
+@:            card 16 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 7
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+} if (DG1.Interface == "NA" && DG1.MGgroup == "8") {
+
+@:         group8 redundancy one-to-one gateway 1
+@:            card 17 working
+@:            card 18 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 7
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+} if (DG1.Interface == "NA" && DG1.MGgroup == "9") {
+
+@:         group 9 redundancy one-to-one gateway 1
+@:            card 19 working
+@:            card 20 protect
+@:            no shutdown
+@:         exit
+@:         thresholds
+@:             system-mg-ism 2
+@:                 counter cp-isa-cpu high-threshold 85 low-threshold 70
+@:                 interval 5
+@:                 no shutdown
+@:             exit
+@:         exit
+}}}
+	   exit
+    exit

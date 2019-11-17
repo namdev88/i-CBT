@@ -1,0 +1,81 @@
+
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo "Mobile Gateway  Sx profile Configuration"
+#--------------------------------------------------
+  mobile-gateway
+     profile
+@{
+    foreach(var var in Node.SxList){
+	if (var.MultiPools == "no" && var.MultiAPNs == "no"){
+@:            pfcp
+@:                pfcp-association-peer-list "@(var.PfcpAssociationPeerListName)"
+@:                    description "@(var.PfcpPeerListDesc)"
+@:                    peer @(var.PfcpPeerAddress)
+@:                exit
+	if (var.PeerListName != "NA"){
+@:                up-peer-list "@(var.PeerListName)"
+@:                    description "@(var.PeerListDesc)"
+@:                    peer @(var.PfcpPeerAddress)
+@:                        network-realm "@(var.NetworkRealm)"
+@:                            ip-pool "@(var.IpPoolName)"
+@:                                hold-timer 1 hold-for-pdn
+@:                                ipv4-prefix @(var.ipv4Prefix)
+@:                                ipv6-prefix @(var.ipv6Prefix)
+@:                            exit
+@:                            ip-pool-distribution
+@:                        exit
+@:                        apn "@(var.APNName)"
+@:                            network-realm "@(var.APNNetworkRealmName)"
+@:                            ip-pool-list 
+@:                                ip-pool "@(var.IpPoolName)"
+@:                            exit
+@:                        exit
+}}	if (var.MultiNetworkRealm == "yes") {
+@:                        network-realm "@(var.NetworkRealm)"
+@:                            ip-pool "@(var.IpPoolName)"
+@:                                hold-timer 1 hold-for-pdn
+@:                                ipv4-prefix @(var.ipv4Prefix)
+@:                                ipv6-prefix @(var.ipv6Prefix)
+@:                            exit
+@:                        exit
+} if (var.MultiPools == "no" && var.MultiAPNs == "yes"){
+@:                        apn "@(var.APNName)"
+@:                            network-realm "@(var.APNNetworkRealmName)"
+@:                            ip-pool-list 
+@:                                ip-pool "@(var.IpPoolName)"
+@:                            exit
+@:                        exit
+}   if (var.MultiPools == "yes" && var.MultiAPNs == "no"){
+@:                        network-realm "@(var.NetworkRealm)"
+@:                            ip-pool "@(var.IpPoolName)"
+@:                                hold-timer 1 hold-for-pdn
+@:                                ipv4-prefix @(var.ipv4Prefix)
+@:                                ipv6-prefix @(var.ipv6Prefix)
+@:                            exit
+@:                        exit
+@:                        apn "@(var.APNName)"
+@:                            network-realm "@(var.APNNetworkRealmName)"
+@:                            ip-pool-list 
+@:                                ip-pool "@(var.IpPoolName)"
+@:                            exit
+@:                        exit
+}  if (var.MultiPools == "yes" && var.MultiAPNs == "yes"){
+@:                        apn "@(var.APNName)"
+@:                            network-realm "@(var.APNNetworkRealmName)"
+@:                            ip-pool-list 
+@:                                ip-pool "@(var.IpPoolName)"
+@:                            exit
+@:                        exit
+}}}@{
+    foreach(var var in Node.SxList){
+	if (var.MultiPools == "no" && var.MultiAPNs == "no"){
+	if (var.IpPoolName != "NA"){
+@:                    exit
+@:                exit
+}}}}
+            exit			
+     exit
+  exit

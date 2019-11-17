@@ -1,0 +1,38 @@
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo " Basic Mobile Gateway Configuration"
+#--------------------------------------------------
+
+   mobile-gateway
+@{
+
+foreach(var var in Node.MGBasicList){     
+if (var.HomePlmnList != "NA"){
+@:        profile
+@:            list
+@:                plmn "@(var.HomePlmnList)"
+@:                    mcc @(var.MCC) mnc @(var.MNC)
+@:                exit
+@:            exit
+@:        exit
+}
+@:        pdn 1
+@:            instance-type @(var.InstanceType)
+@:            allow-multiple-apn-pdn
+@:            epc-node "@(var.EpcNodeID)"
+if (var.HomePlmnList != "NA"){
+@:            home-plmn-list "@(var.HomePlmnList)"
+} if (var.DiaOriginHost != "NA" && var.DiaOriginRealm != "NA" ){
+@:            signaling
+@:                diameter
+@:                    origin-host "@(var.DiaOriginHost)"
+@:                    origin-realm "@(var.DiaOriginRealm)"
+@:                exit
+@:            exit
+}
+@:		exit
+@:  exit
+}}
+

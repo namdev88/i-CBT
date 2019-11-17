@@ -1,0 +1,2423 @@
+@{
+  var Node = Model;
+}
+
+#--------------------------------------------------
+echo "LB Service Configuration"
+#--------------------------------------------------
+ 
+
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical1" ){
+    if (LB1.VPRN != "NA" ){
+    @:service
+    @:  vprn @(LB1.VPRN) name "@(LB1.VRFName)_LBVPRN" customer 1 create
+    @:    description "@(LB1.VRFName)_LBVPRN"
+	if (LB1.RoutingType == "BGP" ){
+    @:    vrf-import "@(LB1.VRFImportName)"
+	}
+    @:    ecmp 4
+    @:    autonomous-system @(LB1.localAS)
+    @:    route-distinguisher @(LB1.localAS):@(LB1.VPRN)
+    }
+    @:    interface "@(LB1.InterfaceName)" create
+    @:      enable-ingress-stats
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	if (LB1.IPMTU != "NA"){
+    @:      ip-mtu @(LB1.IPMTU)
+	}
+    @:      bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:          bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+    @:       exit
+    } if (LB1.VLAN != "NA" ){
+    @:      sap @(LB1.Port):@(LB1.VLAN) create
+    } else {
+    @:      sap @(LB1.Port) create
+    }
+    @:      exit
+    @:    exit
+    }
+    }
+}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback1"){
+    @:   interface  "@(LB1.InterfaceName)" create
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA") {
+    @:      address @(LB1.Address)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:      exit
+    }
+    @:      loopback 
+    @:   exit
+    }
+    }
+}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical1"){ 
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+    @:    bgp
+    @:        min-route-advertisement 1
+    @:        multipath 4
+	if (LBBGP1.Address != "NA"){
+    @:        group "lb"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}} 	if (LBBGP1.Address != "NA"){
+    @:            neighbor @(LBBGP1.neighbor)
+    @:                local-address @(LBBGP1.localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical1"){ 
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA" && LBBGP1.Address != "NA" ){
+    @:        exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical1"){ 
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.IPv6Address != "NA"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+    @:        group "lb_ipv6"
+	if (LBBGP1.BGPType == "external"){
+    @:            family ipv6
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}
+    @:            neighbor @(LBBGP1.IPv6neighbor)
+    @:               local-address @(LBBGP1.IPv6localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical1"){ 
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+    if (LBBGP1.IPv6Address != "NA"){
+    @:        exit
+    }
+    @:        no shutdown
+    @:    exit
+    @:    no shutdown
+    @: exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical1"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical1"){
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) no shutdown
+    }}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical1"){
+	if (LBBGP1.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical1"){
+	if (LBBGP1.IPv6Address != "NA" ){
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) no shutdown
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical1"){ 
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.VPRN != "NA"){
+    @:    no shutdown
+    @: exit
+    }}}}}
+
+	@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "OSPF" ){
+    if (LBBGP1.InterfaceType == "Physical1"){
+    if (LBBGP1.VPRN != "NA"){
+
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(LBBGP1.OSPFID) 
+    @:            area @(LBBGP1.AreaID)
+    }}}}  foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Loopback1") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    no shutdown
+    @:                exit
+    }}} foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Physical1") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var LBBGP1 in Node.LBVPRNsList){ 	
+        if (LBBGP1.InterfaceType == "Physical1") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+        if (LBBGP1.VPRN != "NA"){
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}}
+
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical2"){
+    if (LB1.VPRN != "NA" ){
+    @: vprn @(LB1.VPRN) name "@(LB1.VRFName)_LBVPRN" customer 1 create
+    @:    description "@(LB1.VRFName)_LBVPRN"
+	if (LB1.RoutingType == "BGP" ){
+    @:    vrf-import "@(LB1.VRFImportName)"
+	}
+    @:    ecmp 4
+    @:    autonomous-system @(LB1.localAS)
+    @:    route-distinguisher @(LB1.localAS):@(LB1.VPRN)
+    }
+    @:    interface "@(LB1.InterfaceName)" create
+    @:      enable-ingress-stats
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	if (LB1.IPMTU != "NA"){
+    @:      ip-mtu @(LB1.IPMTU)
+	}
+    @:      bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:          bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+    @:      exit
+    } if (LB1.VLAN != "NA" ){
+    @:      sap @(LB1.Port):@(LB1.VLAN) create
+    } else {
+    @:      sap @(LB1.Port) create
+    }
+    @:      exit
+    @:    exit
+    }
+    }}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback2"){
+    @:   interface  "@(LB1.InterfaceName)" create
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:      exit
+    }
+    @:      loopback 
+    @:   exit
+    }
+    }
+}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical2"){ 
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+    @:    bgp
+    @:        min-route-advertisement 1
+    @:        multipath 4
+	if (LBBGP1.Address != "NA"){
+    @:        group "lb"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}} 	if (LBBGP1.Address != "NA"){
+    @:            neighbor @(LBBGP1.neighbor)
+    @:               local-address @(LBBGP1.localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical2"){ 
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.VPRN != "NA" && LBBGP1.Address != "NA" ){
+    @:        exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical2"){ 
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.IPv6Address != "NA"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+    @:        group "lb_ipv6"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}
+    @:            neighbor @(LBBGP1.IPv6neighbor)
+    @:               local-address @(LBBGP1.IPv6localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical2"){ 
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+    if (LBBGP1.IPv6Address != "NA"){
+    @:        exit
+    }
+    @:        no shutdown
+    @:    exit
+    @:    no shutdown
+    @: exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical2"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical2"){
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) no shutdown
+    }}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical2"){
+	if (LBBGP1.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical2"){
+	if (LBBGP1.IPv6Address != "NA" ){
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) no shutdown
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical2"){ 
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.VPRN != "NA"){
+    @:    no shutdown
+    @: exit
+    }}}}}
+
+	@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "OSPF" ){
+    if (LBBGP1.InterfaceType == "Physical2"){
+    if (LBBGP1.VPRN != "NA"){
+
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(LBBGP1.OSPFID) 
+    @:            area @(LBBGP1.AreaID)
+    }}}}  foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Loopback2") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    no shutdown
+    @:                exit
+    }}} foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Physical2") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var LBBGP1 in Node.LBVPRNsList){ 	
+        if (LBBGP1.InterfaceType == "Physical2") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+        if (LBBGP1.VPRN != "NA"){
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}}
+
+
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical3"){
+    if (LB1.VPRN != "NA" ){
+    @: vprn @(LB1.VPRN) name "@(LB1.VRFName)_LBVPRN" customer 1 create
+    @:    description "@(LB1.VRFName)_LBVPRN"
+	if (LB1.RoutingType == "BGP" ){
+    @:    vrf-import "@(LB1.VRFImportName)"
+	}
+    @:    ecmp 4
+    @:    autonomous-system @(LB1.localAS)
+    @:    route-distinguisher @(LB1.localAS):@(LB1.VPRN)
+    }
+    @:    interface "@(LB1.InterfaceName)" create
+    @:      enable-ingress-stats
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	if (LB1.IPMTU != "NA"){
+    @:      ip-mtu @(LB1.IPMTU)
+	}
+    @:      bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:          bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+    @:      exit
+    } if (LB1.VLAN != "NA" ){
+    @:      sap @(LB1.Port):@(LB1.VLAN) create
+    } else {
+    @:      sap @(LB1.Port) create
+    }
+    @:      exit
+    @:    exit
+    }
+    }}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback3"){
+    @:   interface  "@(LB1.InterfaceName)" create
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:      exit
+    }
+    @:      loopback 
+    @:   exit
+    }
+    }
+}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical3"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+    @:    bgp
+    @:        min-route-advertisement 1
+    @:        multipath 4
+	if (LBBGP1.Address != "NA"){	
+    @:        group "lb"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}} 	if (LBBGP1.Address != "NA"){
+    @:            neighbor @(LBBGP1.neighbor)
+    @:               local-address @(LBBGP1.localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical3"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA" && LBBGP1.Address != "NA" ){
+    @:        exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical3"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.IPv6Address != "NA"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+    @:        group "lb_ipv6"
+	if (LBBGP1.BGPType == "external"){
+    @:            family ipv6
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            family ipv6
+    @:            type internal
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}
+    @:            neighbor @(LBBGP1.IPv6neighbor)
+    @:                local-address @(LBBGP1.IPv6localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical3"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.VPRN != "NA"){
+    if (LBBGP1.IPv6Address != "NA"){
+    @:        exit
+    }
+    @:        no shutdown
+    @:    exit
+    @:    no shutdown
+    @: exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical3"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical3"){
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) no shutdown
+    }}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical3"){
+	if (LBBGP1.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical3"){
+	if (LBBGP1.IPv6Address != "NA" ){
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) no shutdown
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical3"){ 
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.VPRN != "NA"){
+    @:    no shutdown
+    @: exit
+    }}}}}
+
+	@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "OSPF" ){
+    if (LBBGP1.InterfaceType == "Physical3"){
+    if (LBBGP1.VPRN != "NA"){
+
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(LBBGP1.OSPFID) 
+    @:            area @(LBBGP1.AreaID)
+    }}}}  foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Loopback3") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    no shutdown
+    @:                exit
+    }}} foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Physical3") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var LBBGP1 in Node.LBVPRNsList){ 	
+        if (LBBGP1.InterfaceType == "Physical3") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+        if (LBBGP1.VPRN != "NA"){
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}}
+
+
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical4"){
+    if (LB1.VPRN != "NA" ){
+    @: vprn @(LB1.VPRN) name "@(LB1.VRFName)_LBVPRN" customer 1 create
+    @:    description "@(LB1.VRFName)_LBVPRN"
+	if (LB1.RoutingType == "BGP" ){
+    @:    vrf-import "@(LB1.VRFImportName)"
+	}
+    @:    ecmp 4
+    @:    autonomous-system @(LB1.localAS)
+    @:    route-distinguisher @(LB1.localAS):@(LB1.VPRN)
+    }
+    @:    interface "@(LB1.InterfaceName)" create
+    @:      enable-ingress-stats
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	if (LB1.IPMTU != "NA"){
+    @:      ip-mtu @(LB1.IPMTU)
+	}
+    @:      bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:          bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+    @:      exit
+    } if (LB1.VLAN != "NA" ){
+    @:      sap @(LB1.Port):@(LB1.VLAN) create
+    } else {
+    @:      sap @(LB1.Port) create
+    }
+    @:      exit
+    @:    exit
+    }
+    }}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback4"){
+    @:   interface  "@(LB1.InterfaceName)" create
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:      exit
+    }
+    @:      loopback 
+    @:   exit
+    }
+    }
+}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical4"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+    @:    bgp
+    @:        min-route-advertisement 1
+    @:        multipath 4
+	if (LBBGP1.Address != "NA"){
+    @:        group "lb"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}}	if (LBBGP1.Address != "NA"){
+    @:            neighbor @(LBBGP1.neighbor)
+    @:                local-address @(LBBGP1.localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical4"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA" && LBBGP1.Address != "NA" ){
+    @:        exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical4"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.IPv6Address != "NA"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+    @:        group "lb_ipv6"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}
+    @:            neighbor @(LBBGP1.IPv6neighbor)
+    @:                local-address @(LBBGP1.IPv6localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical4"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+    if (LBBGP1.IPv6Address != "NA"){
+    @:        exit
+    }
+    @:        no shutdown
+    @:    exit
+    @:    no shutdown
+    @: exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical14"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical4"){
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) no shutdown
+    }}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical4"){
+	if (LBBGP1.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical4"){
+	if (LBBGP1.IPv6Address != "NA" ){
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) no shutdown
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical4"){ 
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.VPRN != "NA"){
+    @:    no shutdown
+    @: exit
+    }}}}}
+
+	@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "OSPF" ){
+    if (LBBGP1.InterfaceType == "Physical4"){
+    if (LBBGP1.VPRN != "NA"){
+
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(LBBGP1.OSPFID) 
+    @:            area @(LBBGP1.AreaID)
+    }}}}  foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Loopback4") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    no shutdown
+    @:                exit
+    }}} foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Physical4") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var LBBGP1 in Node.LBVPRNsList){ 	
+        if (LBBGP1.InterfaceType == "Physical4") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+        if (LBBGP1.VPRN != "NA"){
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}}
+
+
+
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical5"){
+    if (LB1.VPRN != "NA" ){
+    @: vprn @(LB1.VPRN) name "@(LB1.VRFName)_LBVPRN" customer 1 create
+    @:    description "@(LB1.VRFName)_LBVPRN"
+	if (LB1.RoutingType == "BGP" ){
+    @:    vrf-import "@(LB1.VRFImportName)"
+	}
+    @:    ecmp 4
+    @:    autonomous-system @(LB1.localAS)
+    @:    route-distinguisher @(LB1.localAS):@(LB1.VPRN)
+    }
+    @:    interface "@(LB1.InterfaceName)" create
+    @:      enable-ingress-stats
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	if (LB1.IPMTU != "NA"){
+    @:      ip-mtu @(LB1.IPMTU)
+	}
+    @:      bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:          bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+    @:      exit
+    } if (LB1.VLAN != "NA" ){
+    @:      sap @(LB1.Port):@(LB1.VLAN) create
+    } else {
+    @:      sap @(LB1.Port) create
+    }
+    @:      exit
+    @:    exit
+    }
+    }}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback5"){
+    @:   interface  "@(LB1.InterfaceName)" create
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:      exit
+    }
+    @:      loopback 
+    @:   exit
+    }
+    }
+}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical5"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+    @:    bgp
+    @:        min-route-advertisement 1
+    @:        multipath 4
+	if (LBBGP1.Address != "NA"){
+    @:        group "lb"	
+ 	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}}	if (LBBGP1.Address != "NA"){
+    @:            neighbor @(LBBGP1.neighbor)
+    @:                local-address @(LBBGP1.localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical5"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA" && LBBGP1.Address != "NA" ){
+    @:        exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical5"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.IPv6Address != "NA"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+    @:        group "lb_ipv6"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}
+    @:            neighbor @(LBBGP1.IPv6neighbor)
+    @:                local-address @(LBBGP1.IPv6localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical5"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+    if (LBBGP1.IPv6Address != "NA"){
+    @:        exit
+    }
+    @:        no shutdown
+    @:    exit
+    @:    no shutdown
+    @: exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical5"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical5"){
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) no shutdown
+    }}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical5"){
+	if (LBBGP1.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical5"){
+	if (LBBGP1.IPv6Address != "NA" ){
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) no shutdown
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical5"){ 
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.VPRN != "NA"){
+    @:    no shutdown
+    @: exit
+    }}}}}
+
+	@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "OSPF" ){
+    if (LBBGP1.InterfaceType == "Physical5"){
+    if (LBBGP1.VPRN != "NA"){
+
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(LBBGP1.OSPFID) 
+    @:            area @(LBBGP1.AreaID)
+    }}}}  foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Loopback5") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    no shutdown
+    @:                exit
+    }}} foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Physical5") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var LBBGP1 in Node.LBVPRNsList){ 	
+        if (LBBGP1.InterfaceType == "Physical5") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+        if (LBBGP1.VPRN != "NA"){
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}}
+
+
+
+
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical6"){
+    if (LB1.VPRN != "NA" ){
+    @: vprn @(LB1.VPRN) name "@(LB1.VRFName)_LBVPRN" customer 1 create
+    @:    description "@(LB1.VRFName)_LBVPRN"
+	if (LB1.RoutingType == "BGP" ){
+    @:    vrf-import "@(LB1.VRFImportName)"
+	}
+    @:    ecmp 4
+    @:    autonomous-system @(LB1.localAS)
+    @:    route-distinguisher @(LB1.localAS):@(LB1.VPRN)
+    }
+    @:    interface "@(LB1.InterfaceName)" create
+    @:      enable-ingress-stats
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	if (LB1.IPMTU != "NA"){
+    @:      ip-mtu @(LB1.IPMTU)
+	}
+    @:      bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:          bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+    @:      exit
+    } if (LB1.VLAN != "NA" ){
+    @:      sap @(LB1.Port):@(LB1.VLAN) create
+    } else {
+    @:      sap @(LB1.Port) create
+    }
+    @:      exit
+    @:    exit
+    }
+    }}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback6"){
+    @:   interface  "@(LB1.InterfaceName)" create
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:      exit
+    }
+    @:      loopback 
+    @:   exit
+    }
+    }
+}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical6"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+    @:    bgp
+    @:        min-route-advertisement 1
+    @:        multipath 4
+	if (LBBGP1.Address != "NA"){
+    @:        group "lb"
+  	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}}	if (LBBGP1.Address != "NA"){
+    @:            neighbor @(LBBGP1.neighbor)
+    @:                local-address @(LBBGP1.localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical6"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if ((LBBGP1.VPRN != "NA") && (LBBGP1.Address != "NA") ){
+    @:        exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical6"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.IPv6Address != "NA"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+    @:        group "lb_ipv6"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}
+    @:            neighbor @(LBBGP1.IPv6neighbor)
+    @:               local-address @(LBBGP1.IPv6localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical6"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+    if (LBBGP1.IPv6Address != "NA"){
+    @:        exit
+    }
+    @:        no shutdown
+    @:    exit
+    @:    no shutdown
+    @: exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical6"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical6"){
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) no shutdown
+    }}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical6"){
+	if (LBBGP1.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical6"){
+	if (LBBGP1.IPv6Address != "NA" ){
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) no shutdown
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical6"){ 
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.VPRN != "NA"){
+    @:    no shutdown
+    @: exit
+    }}}}}
+
+	@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "OSPF" ){
+    if (LBBGP1.InterfaceType == "Physical6"){
+    if (LBBGP1.VPRN != "NA"){
+
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(LBBGP1.OSPFID) 
+    @:            area @(LBBGP1.AreaID)
+    }}}}  foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Loopback6") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    no shutdown
+    @:                exit
+    }}} foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Physical6") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var LBBGP1 in Node.LBVPRNsList){ 	
+        if (LBBGP1.InterfaceType == "Physical6") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+        if (LBBGP1.VPRN != "NA"){
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}}
+
+
+
+	@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical7"){
+    if (LB1.VPRN != "NA" ){
+    @: vprn @(LB1.VPRN) name "@(LB1.VRFName)_LBVPRN" customer 1 create
+    @:    description "@(LB1.VRFName)_LBVPRN"
+	if (LB1.RoutingType == "BGP" ){
+    @:    vrf-import "@(LB1.VRFImportName)"
+	}
+    @:    ecmp 4
+    @:    autonomous-system @(LB1.localAS)
+    @:    route-distinguisher @(LB1.localAS):@(LB1.VPRN)
+    }
+    @:    interface "@(LB1.InterfaceName)" create
+    @:      enable-ingress-stats
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	if (LB1.IPMTU != "NA"){
+    @:      ip-mtu @(LB1.IPMTU)
+	}
+    @:      bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:          bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+    @:      exit
+    } if (LB1.VLAN != "NA" ){
+    @:      sap @(LB1.Port):@(LB1.VLAN) create
+    } else {
+    @:      sap @(LB1.Port) create
+    }
+    @:      exit
+    @:    exit
+    }
+    }}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback7"){
+    @:   interface  "@(LB1.InterfaceName)" create
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:      exit
+    }
+    @:      loopback 
+    @:   exit
+    }
+    }
+}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical7"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+    @:    bgp
+    @:        min-route-advertisement 1
+    @:        multipath 4
+	if (LBBGP1.Address != "NA"){
+    @:        group "lb"
+ 	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}}	if (LBBGP1.Address != "NA"){
+    @:            neighbor @(LBBGP1.neighbor)
+    @:               local-address @(LBBGP1.localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical7"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA" && LBBGP1.Address != "NA" ){
+    @:        exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical7"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.IPv6Address != "NA"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+    @:        group "lb_ipv6"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}
+    @:            neighbor @(LBBGP1.IPv6neighbor)
+    @:                local-address @(LBBGP1.IPv6localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical7"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+    if (LBBGP1.IPv6Address != "NA"){
+    @:        exit
+    }
+    @:        no shutdown
+    @:    exit
+    @:    no shutdown
+    @: exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical7"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical7"){
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) no shutdown
+    }}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical7"){
+	if (LBBGP1.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical7"){
+	if (LBBGP1.IPv6Address != "NA" ){
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) no shutdown
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical7"){ 
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.VPRN != "NA"){
+    @:    no shutdown
+    @: exit
+    }}}}}
+
+	@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "OSPF" ){
+    if (LBBGP1.InterfaceType == "Physical7"){
+    if (LBBGP1.VPRN != "NA"){
+
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(LBBGP1.OSPFID) 
+    @:            area @(LBBGP1.AreaID)
+    }}}}  foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Loopback7") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    no shutdown
+    @:                exit
+    }}} foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Physical7") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var LBBGP1 in Node.LBVPRNsList){ 	
+        if (LBBGP1.InterfaceType == "Physical7") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+        if (LBBGP1.VPRN != "NA"){
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}}	
+
+
+	@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical8"){
+    if (LB1.VPRN != "NA" ){
+    @: vprn @(LB1.VPRN) name "@(LB1.VRFName)_LBVPRN" customer 1 create
+    @:    description "@(LB1.VRFName)_LBVPRN"
+	if (LB1.RoutingType == "BGP" ){
+    @:    vrf-import "@(LB1.VRFImportName)"
+	}
+    @:    ecmp 4
+    @:    autonomous-system @(LB1.localAS)
+    @:    route-distinguisher @(LB1.localAS):@(LB1.VPRN)
+    }
+    @:    interface "@(LB1.InterfaceName)" create
+    @:      enable-ingress-stats
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	if (LB1.IPMTU != "NA"){
+    @:      ip-mtu @(LB1.IPMTU)
+	}
+    @:      bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:          bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+    @:      exit
+    } if (LB1.VLAN != "NA" ){
+    @:      sap @(LB1.Port):@(LB1.VLAN) create
+    } else {
+    @:      sap @(LB1.Port) create
+    }
+    @:      exit
+    @:    exit
+    }
+    }}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback8"){
+    @:   interface  "@(LB1.InterfaceName)" create
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:      exit
+    }
+    @:      loopback 
+    @:   exit
+    }
+    }
+}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical8"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+    @:    bgp
+    @:        min-route-advertisement 1
+    @:        multipath 4
+	if (LBBGP1.Address != "NA"){
+    @:        group "lb"
+ 	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}}	if (LBBGP1.Address != "NA"){
+    @:            neighbor @(LBBGP1.neighbor)
+    @:               local-address @(LBBGP1.localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical8"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.VPRN != "NA" && LBBGP1.Address != "NA" ){
+    @:        exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical8"){
+	if (LBBGP1.RoutingType == "BGP" ){
+    if (LBBGP1.IPv6Address != "NA"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+    @:        group "lb_ipv6"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}
+    @:            neighbor @(LBBGP1.IPv6neighbor)
+    @:                local-address @(LBBGP1.IPv6localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical8"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.VPRN != "NA"){
+    if (LBBGP1.IPv6Address != "NA"){
+    @:        exit
+    }
+    @:        no shutdown
+    @:    exit
+    @:    no shutdown
+    @: exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical8"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical8"){
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) no shutdown
+    }}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical8"){
+	if (LBBGP1.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical8"){
+	if (LBBGP1.IPv6Address != "NA" ){
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) no shutdown
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical8"){ 
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.VPRN != "NA"){
+    @:    no shutdown
+    @: exit
+    }}}}}
+
+	@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "OSPF" ){
+    if (LBBGP1.InterfaceType == "Physical8"){
+    if (LBBGP1.VPRN != "NA"){
+
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(LBBGP1.OSPFID) 
+    @:            area @(LBBGP1.AreaID)
+    }}}}  foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Loopback8") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    no shutdown
+    @:                exit
+    }}} foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Physical8") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var LBBGP1 in Node.LBVPRNsList){ 	
+        if (LBBGP1.InterfaceType == "Physical8") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+        if (LBBGP1.VPRN != "NA"){
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}}
+
+
+	@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical9"){
+    if (LB1.VPRN != "NA" ){
+    @: vprn @(LB1.VPRN) name "@(LB1.VRFName)_LBVPRN" customer 1 create
+    @:    description "@(LB1.VRFName)_LBVPRN"
+	if (LB1.RoutingType == "BGP" ){
+    @:    vrf-import "@(LB1.VRFImportName)"
+	}
+    @:    ecmp 4
+    @:    autonomous-system @(LB1.localAS)
+    @:    route-distinguisher @(LB1.localAS):@(LB1.VPRN)
+    }
+    @:    interface "@(LB1.InterfaceName)" create
+    @:      enable-ingress-stats
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	if (LB1.IPMTU != "NA"){
+    @:      ip-mtu @(LB1.IPMTU)
+	}
+    @:      bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:          bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+    @:      exit
+    } if (LB1.VLAN != "NA" ){
+    @:      sap @(LB1.Port):@(LB1.VLAN) create
+    } else {
+    @:      sap @(LB1.Port) create
+    }
+    @:      exit
+    @:    exit
+    }
+    }}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback9"){
+    @:   interface  "@(LB1.InterfaceName)" create
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:      exit
+    }
+    @:      loopback 
+    @:   exit
+    }
+    }
+}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical9"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+    @:    bgp
+    @:        min-route-advertisement 1
+    @:        multipath 4
+	if (LBBGP1.Address != "NA"){
+    @:        group "lb"
+ 	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}}	if (LBBGP1.Address != "NA"){
+    @:            neighbor @(LBBGP1.neighbor)
+    @:               local-address @(LBBGP1.localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical9"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.VPRN != "NA" && LBBGP1.Address != "NA" ){
+    @:        exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical9"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.IPv6Address != "NA"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+    @:        group "lb_ipv6"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}
+    @:            neighbor @(LBBGP1.IPv6neighbor)
+    @:                local-address @(LBBGP1.IPv6localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical9"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.VPRN != "NA"){
+    if (LBBGP1.IPv6Address != "NA"){
+    @:        exit
+    }
+    @:        no shutdown
+    @:    exit
+    @:    no shutdown
+    @: exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical9"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical9"){
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) no shutdown
+    }}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical9"){
+	if (LBBGP1.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical9"){
+	if (LBBGP1.IPv6Address != "NA" ){
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) no shutdown
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical9"){ 
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.VPRN != "NA"){
+    @:    no shutdown
+    @: exit
+    }}}}}
+
+	@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "OSPF" ){
+    if (LBBGP1.InterfaceType == "Physical9"){
+    if (LBBGP1.VPRN != "NA"){
+
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(LBBGP1.OSPFID) 
+    @:            area @(LBBGP1.AreaID)
+    }}}}  foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Loopback9") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    no shutdown
+    @:                exit
+    }}} foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Physical9") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var LBBGP1 in Node.LBVPRNsList){ 	
+        if (LBBGP1.InterfaceType == "Physical9") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+        if (LBBGP1.VPRN != "NA"){
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}}
+
+
+	@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical10"){
+    if (LB1.VPRN != "NA" ){
+    @: vprn @(LB1.VPRN) name "@(LB1.VRFName)_LBVPRN" customer 1 create
+    @:    description "@(LB1.VRFName)_LBVPRN"
+	if (LB1.RoutingType == "BGP" ){
+    @:    vrf-import "@(LB1.VRFImportName)"
+	}
+    @:    ecmp 4
+    @:    autonomous-system @(LB1.localAS)
+    @:    route-distinguisher @(LB1.localAS):@(LB1.VPRN)
+    }
+    @:    interface "@(LB1.InterfaceName)" create
+    @:      enable-ingress-stats
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	if (LB1.IPMTU != "NA"){
+    @:      ip-mtu @(LB1.IPMTU)
+	}
+    @:      bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:          bfd @(LB1.tx) receive @(LB1.rcv) multiplier @(LB1.multiplier)
+    @:      exit
+    } if (LB1.VLAN != "NA" ){
+    @:      sap @(LB1.Port):@(LB1.VLAN) create
+    } else {
+    @:      sap @(LB1.Port) create
+    }
+    @:      exit
+    @:    exit
+    }
+    }}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback10"){
+    @:   interface  "@(LB1.InterfaceName)" create
+    @:      description "@(LB1.Description)"
+	if (LB1.Address != "NA"){
+    @:      address @(LB1.Address)
+	}
+    if (LB1.IPv6Address != "NA" ){
+    @:      ipv6
+    @:          address @(LB1.IPv6Address)
+    @:      exit
+    }
+    @:      loopback 
+    @:   exit
+    }
+    }
+}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical10"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv4 Configuration"
+	@: #--------------------------------------------------
+    @:    bgp
+    @:        min-route-advertisement 1
+    @:        multipath 4
+	if (LBBGP1.Address != "NA"){
+    @:        group "lb"
+ 	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            export "@(LBBGP1.VRFExportBGPName)" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}} 	if (LBBGP1.Address != "NA"){
+    @:            neighbor @(LBBGP1.neighbor)
+    @:               local-address @(LBBGP1.localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical10"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.VPRN != "NA" && LBBGP1.Address != "NA" ){
+    @:        exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical10"){
+	if (LBBGP1.RoutingType == "BGP" ){  
+    if (LBBGP1.IPv6Address != "NA"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "BGP Ipv6 Configuration"
+	@: #--------------------------------------------------
+    @:        group "lb_ipv6"
+	if (LBBGP1.BGPType == "external"){
+    @:            type external
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+	@:            bfd-enable
+	} else {
+    @:            type internal
+    @:            family ipv6
+    @:            export "@(LBBGP1.VRFExportBGPName)_ipv6" 
+    @:            local-as @(LBBGP1.localAS)
+    @:            peer-as @(LBBGP1.peerAS)
+    @:            bfd-enable
+    }}
+    @:            neighbor @(LBBGP1.IPv6neighbor)
+    @:                local-address @(LBBGP1.IPv6localAddress)
+	@:            exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){ 
+    if (LBBGP1.InterfaceType == "Physical10"){
+	if (LBBGP1.RoutingType == "BGP" ){ 
+    if (LBBGP1.VPRN != "NA"){
+    if (LBBGP1.IPv6Address != "NA"){
+    @:        exit
+    }
+    @:        no shutdown
+    @:    exit
+    @:    no shutdown
+    @: exit
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical10"){
+    if (LBBGP1.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical10"){
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry 0.0.0.0/0 next-hop @(LBBGP1.StaticRouteNextHop) no shutdown
+    }}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.InterfaceType == "Physical10"){
+	if (LBBGP1.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }}
+    if (LBBGP1.InterfaceType == "Physical10"){
+	if (LBBGP1.IPv6Address != "NA" ){
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) bfd-enable 
+    @:    static-route-entry ::/0 next-hop @(LBBGP1.IPv6StaticRouteNextHop) no shutdown
+    }}}}}@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){
+    if (LBBGP1.InterfaceType == "Physical10"){ 
+	if (LBBGP1.RoutingType == "Static" ){
+    if (LBBGP1.VPRN != "NA"){
+    @:    no shutdown
+    @: exit
+    }}}}}
+
+	@{
+    foreach (var LBBGP1 in Node.LBVPRNsList){  
+	if (LBBGP1.RoutingType == "OSPF" ){
+    if (LBBGP1.InterfaceType == "Physical10"){
+    if (LBBGP1.VPRN != "NA"){
+
+	@: #--------------------------------------------------
+	@:  echo "OSPFv2 Configuration"
+	@: #--------------------------------------------------
+
+    @:        ospf 
+    @:            router-id @(LBBGP1.OSPFID) 
+    @:            area @(LBBGP1.AreaID)
+    }}}}  foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Loopback10") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    no shutdown
+    @:                exit
+    }}} foreach (var LBBGP1 in Node.LBVPRNsList){  
+        if (LBBGP1.InterfaceType == "Physical10") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+    @:                interface "@(LBBGP1.InterfaceName)"
+    @:                    interface-type broadcast
+    @:                    no shutdown
+    @:                exit   
+	}}} foreach (var LBBGP1 in Node.LBVPRNsList){ 	
+        if (LBBGP1.InterfaceType == "Physical10") {
+        if (LBBGP1.RoutingType == "OSPF" ){
+        if (LBBGP1.VPRN != "NA"){
+    @:            exit
+    @:            no shutdown
+    @:        exit
+	}}}}}
+exit
+
+#--------------------------------------------------
+echo "LB Policy Configuration"
+#--------------------------------------------------
+
+
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical1"){
+    if (LB1.VPRN != "NA" ){
+
+    @:  router  "Base"
+    @:       policy-options
+    @:        begin
+	}}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback1"){
+	if (LB1.RoutingType == "BGP"){
+    @:        prefix-list "@(LB1.PrefixlistName)"
+    @:            prefix @(LB1.Address) exact
+    if (LB1.IPv6Address != "NA"){
+    @:            prefix @(LB1.IPv6Address) exact
+}            
+    @:        exit
+    }}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical1"){
+    if (LB1.VPRN != "NA" ){
+	if (LB1.RoutingType == "BGP"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+	if (LB1.IPv6localAddress != "NA"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)_ipv6"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+    }}}}}}
+
+
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback2"){
+	if (LB1.RoutingType == "BGP"){
+    @:        prefix-list "@(LB1.PrefixlistName)"
+    @:            prefix @(LB1.Address) exact  
+    if (LB1.IPv6Address != "NA"){
+    @:            prefix @(LB1.IPv6Address) exact
+}           
+    @:        exit
+    }}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical2"){
+    if (LB1.VPRN != "NA" ){
+	if (LB1.RoutingType == "BGP"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+	if (LB1.IPv6localAddress != "NA"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)_ipv6"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+    }}}}}}
+
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback3"){
+	if (LB1.RoutingType == "BGP"){
+    @:        prefix-list "@(LB1.PrefixlistName)"
+    @:            prefix @(LB1.Address) exact    
+    if (LB1.IPv6Address != "NA"){
+    @:            prefix @(LB1.IPv6Address) exact
+}         
+    @:        exit
+    }}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical3"){
+    if (LB1.VPRN != "NA" ){
+	if (LB1.RoutingType == "BGP"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+	if (LB1.IPv6localAddress != "NA"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)_ipv6"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+    }}}}}}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback4"){
+	if (LB1.RoutingType == "BGP"){
+    @:        prefix-list "@(LB1.PrefixlistName)"
+    if (LB1.IPv6Address != "NA"){
+    @:            prefix @(LB1.IPv6Address) exact
+} 
+    @:            prefix @(LB1.Address) exact            
+    @:        exit
+    }}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical4"){
+    if (LB1.VPRN != "NA" ){
+	if (LB1.RoutingType == "BGP"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+	if (LB1.IPv6localAddress != "NA"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)_ipv6"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+    }}}}}}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback5"){
+	if (LB1.RoutingType == "BGP"){
+    @:        prefix-list "@(LB1.PrefixlistName)"
+    @:            prefix @(LB1.Address) exact       
+    if (LB1.IPv6Address != "NA"){
+    @:            prefix @(LB1.IPv6Address) exact
+}      
+    @:        exit
+    }}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical5"){
+    if (LB1.VPRN != "NA" ){
+	if (LB1.RoutingType == "BGP"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+	if (LB1.IPv6localAddress != "NA"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)_ipv6"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+    }}}}}}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback6"){
+	if (LB1.RoutingType == "BGP"){
+    @:        prefix-list "@(LB1.PrefixlistName)"
+    @:            prefix @(LB1.Address) exact   
+    if (LB1.IPv6Address != "NA"){
+    @:            prefix @(LB1.IPv6Address) exact
+}          
+    @:        exit
+    }}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical6"){
+    if (LB1.VPRN != "NA" ){
+	if (LB1.RoutingType == "BGP"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+	if (LB1.IPv6localAddress != "NA"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)_ipv6"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+    }}}}}}
+
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback7"){
+	if (LB1.RoutingType == "BGP"){
+    @:        prefix-list "@(LB1.PrefixlistName)"
+    @:            prefix @(LB1.Address) exact     
+    if (LB1.IPv6Address != "NA"){
+    @:            prefix @(LB1.IPv6Address) exact
+}         
+    @:        exit
+    }}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical7"){
+    if (LB1.VPRN != "NA" ){
+	if (LB1.RoutingType == "BGP"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+	if (LB1.IPv6localAddress != "NA"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)_ipv6"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+    }}}}}}
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback8"){
+	if (LB1.RoutingType == "BGP"){
+    @:        prefix-list "@(LB1.PrefixlistName)"
+    @:            prefix @(LB1.Address) exact     
+    if (LB1.IPv6Address != "NA"){
+    @:            prefix @(LB1.IPv6Address) exact
+}         
+    @:        exit
+    }}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical8"){
+    if (LB1.VPRN != "NA" ){
+	if (LB1.RoutingType == "BGP"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+	if (LB1.IPv6localAddress != "NA"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)_ipv6"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+    }}}}}}
+	
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback9"){
+	if (LB1.RoutingType == "BGP"){
+    @:        prefix-list "@(LB1.PrefixlistName)"
+    @:            prefix @(LB1.Address) exact     
+    if (LB1.IPv6Address != "NA"){
+    @:            prefix @(LB1.IPv6Address) exact
+}         
+    @:        exit
+    }}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical9"){
+    if (LB1.VPRN != "NA" ){
+	if (LB1.RoutingType == "BGP"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+	if (LB1.IPv6localAddress != "NA"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)_ipv6"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+    }}}}}}
+	
+@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Loopback10"){
+	if (LB1.RoutingType == "BGP"){
+    @:        prefix-list "@(LB1.PrefixlistName)"
+    @:            prefix @(LB1.Address) exact     
+    if (LB1.IPv6Address != "NA"){
+    @:            prefix @(LB1.IPv6Address) exact
+}         
+    @:        exit
+    }}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical10"){
+    if (LB1.VPRN != "NA" ){
+	if (LB1.RoutingType == "BGP"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+	if (LB1.IPv6localAddress != "NA"){
+    @:        policy-statement "@(LB1.VRFExportBGPName)_ipv6"
+    @:            entry 5
+    @:                from
+    @:                prefix-list  "@(LB1.PrefixlistName)"
+    @:                exit
+    @:                action accept
+    @:                exit
+    @:            exit
+    @:            default-action drop
+    @:            exit
+    @:        exit
+    }}}}}}@{
+    foreach (var LB1 in Node.LBVPRNsList){  
+    if (LB1.InterfaceType == "Physical1"){
+    if (LB1.VPRN != "NA" ){
+
+    @:        commit
+    @:     exit	
+    @:  exit	
+    }}}}
+
+	

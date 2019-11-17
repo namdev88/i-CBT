@@ -1,0 +1,68 @@
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo "Log Configuration"
+#--------------------------------------------------
+
+     log
+@{
+       foreach(var log in Node.LogsList){     // for each log  and file id
+
+if (log.ToFile == "yes"){
+@:        file-id @(log.FileID)
+if (log.FileDescription != "NA"){
+@:            description "@(log.FileDescription)"
+}
+@:            location @(log.FileLocation): 
+@:            rollover @(log.FileRollover) retention @(log.FileRetention)
+@:        exit 
+} if (log.ToSyslog == "yes"){
+@:        syslog @(log.SyslogID)
+if (log.SyslogDescription != "NA"){
+@:            description "@(log.SyslogDescription)"
+}
+@:            address @(log.SyslogServerIP)
+if (log.SyslogServerPort != "NA"){
+@:            port @(log.SyslogServerPort)
+}
+@:        exit
+}
+@:        log-id @(log.LogID)
+if (log.LogDescription != "NA" ){
+@:            description "@(log.LogDescription)"
+}if (log.TimeFormatLocal == "yes"){
+@:            time-format local
+} if (log.FromMain == "yes" && log.FromSecurity == "yes" && log.FromChange == "yes" && log.FromDebugTrace == "yes"){
+@:            from main security change debug
+} if (log.FromMain == "yes" && log.FromSecurity == "yes" && log.FromChange == "yes" && log.FromDebugTrace == "no"){
+@:            from main security change
+} if (log.FromMain == "yes" && log.FromSecurity == "yes" && log.FromChange == "no" && log.FromDebugTrace == "no"){
+@:            from main security 
+} if (log.FromMain == "yes" && log.FromSecurity == "no" && log.FromChange == "no" && log.FromDebugTrace == "no"){
+@:            from main 
+} if (log.FromMain == "no" && log.FromSecurity == "yes" && log.FromChange == "yes" && log.FromDebugTrace == "yes"){
+@:            from security change debug
+} if (log.FromMain == "no" && log.FromSecurity == "yes" && log.FromChange == "yes" && log.FromDebugTrace == "no"){
+@:            from security change 
+} if (log.FromMain == "no" && log.FromSecurity == "yes" && log.FromChange == "no" && log.FromDebugTrace == "no"){
+@:            from security 
+} if (log.FromMain == "no" && log.FromSecurity == "no" && log.FromChange == "yes" && log.FromDebugTrace == "yes"){
+@:            from change debug
+} if (log.FromMain == "no" && log.FromSecurity == "no" && log.FromChange == "yes" && log.FromDebugTrace == "no"){
+@:            from change 
+} if (log.FromMain == "no" && log.FromSecurity == "no" && log.FromChange == "no" && log.FromDebugTrace == "yes"){
+@:            from debug
+} if (log.ToMemory == "yes") {
+@:            to memory
+} if (log.ToFile == "yes"){
+@:            to file @(log.FileID)
+} if (log.ToSyslog == "yes"){
+@:            to syslog @(log.SyslogID)
+}
+@:            no shutdown
+@:        exit
+}}
+
+
+

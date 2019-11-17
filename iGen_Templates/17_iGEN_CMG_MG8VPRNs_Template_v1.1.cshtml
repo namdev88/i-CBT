@@ -1,0 +1,1675 @@
+@{
+  var Node = Model;
+}
+
+
+#--------------------------------------------------
+echo "MG8 Service Configuration"
+#--------------------------------------------------
+
+@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical1" ){
+    if (var.VPRN != "NA" ){
+    @:service
+    @:  vprn @(var.VPRN) name "@(var.VRFName)_@(var.VPRN)-Group-08" customer 1 create
+    @:     description "@(var.VRFName)"
+    if (var.VPRNExportName != "NA"){
+	@:     vrf-export "@(var.VPRNExportName)"
+    }
+    @:     ecmp 4
+    @:     autonomous-system @(var.localAS)
+    @:     route-distinguisher @(var.localAS):@(var.VPRN)
+    @:     mg-group 8 local-ecmp-egress
+    }
+    @:     interface "@(var.InterfaceName)" create
+    @:         enable-ingress-stats
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	if (var.IPMTU != "NA"){
+    @:         ip-mtu @(var.IPMTU)
+	}
+    @:         bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:             bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+    @:         exit
+    } if (var.VLAN != "NA" ){
+    @:         sap @(var.Port):@(var.VLAN) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }} else {
+    @:         sap @(var.Port) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }}
+    @:         exit
+    @:     exit
+    }
+    }
+}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback1" ){
+	if (var.UEIPPool != "yes" ){
+    @:     interface "@(var.InterfaceName)" create
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:         exit
+    }
+    @:         loopback
+	if (var.Lag != "NA"){
+    @:         ip-reassembly lag-@(var.Lag)
+	}
+    @:     exit
+    }}
+    }
+}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback1" ){
+	if (var.UEIPPool == "yes" ){
+    @:     ip-local-pool "@(var.InterfaceName)" 
+	@:         remote
+    @:         ipv4-prefix @(var.Address)
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6-prefix @(var.IPv6Address)
+    }
+    @:     exit
+    }
+    }
+}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical1" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }
+	if (var.StaticRouteEntry != "NA"){
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical1" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+    if (var.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }} 
+    if (var.IPv6Address != "NA" ){ 
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback1" ){
+	if (var.UEIPPool == "yes"){
+    @:     static-route-entry @(var.Address) black-hole no shutdown	
+	if (var.IPv6Address != "NA" ){
+    @:     static-route-entry @(var.IPv6Address) black-hole no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical1" ){
+    if (var.VPRN != "NA" ){
+    @:     no shutdown
+   @:exit
+}}}}
+   
+@{
+    foreach(var var in Node.MG8VPRNsList){
+
+    if (var.InterfaceType == "Physical2" ){
+    if (var.VPRN != "NA" ){
+    @:vprn @(var.VPRN) name "@(var.VRFName)_@(var.VPRN)-Group-08" customer 1 create
+    @:     description "@(var.VRFName)"
+    if (var.VPRNExportName != "NA"){
+	@:     vrf-export "@(var.VPRNExportName)"
+    }
+    @:     ecmp 4
+    @:     autonomous-system @(var.localAS)
+    @:     route-distinguisher @(var.localAS):@(var.VPRN)
+    @:     mg-group 8 local-ecmp-egress
+}
+    @:     interface "@(var.InterfaceName)" create
+    @:         enable-ingress-stats
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	if (var.IPMTU != "NA"){
+    @:         ip-mtu @(var.IPMTU)
+	}
+    @:         bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:             bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+    @:         exit
+    } if (var.VLAN != "NA" ){
+    @:         sap @(var.Port):@(var.VLAN) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }} else {
+    @:         sap @(var.Port) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }}
+    @:         exit
+    @:     exit
+}}}@{
+    foreach(var var in Node.MG8VPRNsList){  
+	if (var.InterfaceType == "Loopback2" ){
+	if (var.UEIPPool != "yes" ){
+    @:     interface "@(var.InterfaceName)" create
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:         exit
+    }
+    @:         loopback
+	if (var.Lag != "NA"){
+    @:         ip-reassembly lag-@(var.Lag)
+	}
+    @:     exit
+    }}
+    }
+}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback2" ){
+	if (var.UEIPPool == "yes"){
+    @:     ip-local-pool "@(var.InterfaceName)" 
+	@:         remote
+    @:         ipv4-prefix @(var.Address)
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6-prefix @(var.IPv6Address)
+    }
+    @:     exit
+    }
+    }
+}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical2" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }
+	if (var.StaticRouteEntry != "NA"){
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical2" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+    if (var.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }} 
+    if (var.IPv6Address != "NA" ){ 
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback2" ){
+	if (var.UEIPPool == "yes"){
+    @:     static-route-entry @(var.Address) black-hole no shutdown	
+	if (var.IPv6Address != "NA" ){
+    @:     static-route-entry @(var.IPv6Address) black-hole no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical2" ){
+    if (var.VPRN != "NA" ){
+    @:     no shutdown
+   @:exit
+}}}}
+   
+@{
+    foreach(var var in Node.MG8VPRNsList){
+
+    if (var.InterfaceType == "Physical3" ){
+    if (var.VPRN != "NA" ){
+    @:vprn @(var.VPRN) name "@(var.VRFName)_@(var.VPRN)-Group-08" customer 1 create
+    @:     description "@(var.VRFName)"
+    if (var.VPRNExportName != "NA"){
+	@:     vrf-export "@(var.VPRNExportName)"
+    }
+    @:     ecmp 4
+    @:     autonomous-system @(var.localAS)
+    @:     route-distinguisher @(var.localAS):@(var.VPRN)
+    @:     mg-group 8 local-ecmp-egress
+}
+    @:     interface "@(var.InterfaceName)" create
+    @:         enable-ingress-stats
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	if (var.IPMTU != "NA"){
+    @:         ip-mtu @(var.IPMTU)
+	}
+    @:         bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:             bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+    @:         exit
+    } if (var.VLAN != "NA" ){
+    @:         sap @(var.Port):@(var.VLAN) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }} else {
+    @:         sap @(var.Port) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }}
+    @:         exit
+    @:     exit
+    }
+    }
+}@{
+    foreach(var var in Node.MG8VPRNsList){  
+	if (var.InterfaceType == "Loopback3" ){
+	if (var.UEIPPool != "yes" ){
+    @:     interface "@(var.InterfaceName)" create
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:         exit
+    }
+    @:         loopback
+	if (var.Lag != "NA"){
+    @:         ip-reassembly lag-@(var.Lag)
+	}
+    @:     exit
+    }}
+    }
+}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback3" ){
+	if (var.UEIPPool == "yes"){
+    @:     ip-local-pool "@(var.InterfaceName)"
+	@:         remote
+    @:         ipv4-prefix @(var.Address)
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6-prefix @(var.IPv6Address)
+    }
+    @:     exit
+    }
+    }
+}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical3" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }
+	if (var.StaticRouteEntry != "NA"){
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical3" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+    if (var.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }} 
+    if (var.IPv6Address != "NA" ){ 
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback3" ){
+	if (var.UEIPPool == "yes"){
+    @:     static-route-entry @(var.Address) black-hole no shutdown
+	if (var.IPv6Address != "NA" ){
+    @:     static-route-entry @(var.IPv6Address) black-hole no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical3" ){
+    if (var.VPRN != "NA" ){
+    @:     no shutdown
+   @:exit
+}}}}
+   
+@{
+    foreach(var var in Node.MG8VPRNsList){
+
+    if (var.InterfaceType == "Physical4" ){
+    if (var.VPRN != "NA" ){
+    @:vprn @(var.VPRN) name "@(var.VRFName)_@(var.VPRN)-Group-08" customer 1 create
+    @:     description "@(var.VRFName)"
+    if (var.VPRNExportName != "NA"){
+	@:     vrf-export "@(var.VPRNExportName)"
+    }
+    @:     ecmp 4
+    @:     autonomous-system @(var.localAS)
+    @:     route-distinguisher @(var.localAS):@(var.VPRN)
+    @:     mg-group 8 local-ecmp-egress
+    }
+    @:     interface "@(var.InterfaceName)" create
+    @:         enable-ingress-stats
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	if (var.IPMTU != "NA"){
+    @:         ip-mtu @(var.IPMTU)
+	}
+    @:         bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:             bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+    @:         exit
+    } if (var.VLAN != "NA" ){
+    @:         sap @(var.Port):@(var.VLAN) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }} else {
+    @:         sap @(var.Port) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }}
+    @:         exit
+    @:     exit
+    }
+    }
+}@{
+    foreach(var var in Node.MG8VPRNsList){  
+	if (var.InterfaceType == "Loopback4" ){
+	if (var.UEIPPool != "yes" ){
+    @:     interface "@(var.InterfaceName)" create
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:         exit
+    }
+    @:         loopback
+	if (var.Lag != "NA"){
+    @:         ip-reassembly lag-@(var.Lag)
+	}
+    @:     exit
+    }}
+    }
+}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback4" ){
+	if (var.UEIPPool == "yes"){
+    @:     ip-local-pool "@(var.InterfaceName)" 
+	@:         remote
+    @:         ipv4-prefix @(var.Address)
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6-prefix @(var.IPv6Address)
+    }
+    @:     exit
+    }
+    }
+}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical4" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }
+	if (var.StaticRouteEntry != "NA"){
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical4" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+    if (var.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }} 
+    if (var.IPv6Address != "NA" ){ 
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback4" ){
+	if (var.UEIPPool == "yes"){
+	if (var.StaticRouteEntry != "NA"){
+    @:     static-route-entry @(var.Address) black-hole no shutdown
+	} if (var.IPv6Address != "NA" ){
+    @:     static-route-entry @(var.IPv6Address) black-hole no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical4" ){
+    if (var.VPRN != "NA" ){
+    @:     no shutdown
+   @:exit
+}}}}
+   
+
+@{
+    foreach(var var in Node.MG8VPRNsList){
+
+    if (var.InterfaceType == "Physical5" ){
+    if (var.VPRN != "NA" ){
+    @:vprn @(var.VPRN) name "@(var.VPRN)-Group-08" customer 1 create
+    @:     description "@(var.VRFName)"
+    if (var.VPRNExportName != "NA"){
+	@:     vrf-export "@(var.VPRNExportName)"
+    }
+    @:     ecmp 4
+    @:     autonomous-system @(var.localAS)
+    @:     route-distinguisher @(var.localAS):@(var.VPRN)
+    @:     mg-group 8 local-ecmp-egress
+    }
+    @:     interface "@(var.InterfaceName)" create
+    @:         enable-ingress-stats
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	if (var.IPMTU != "NA"){
+    @:         ip-mtu @(var.IPMTU)
+	}
+    @:         bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:             bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+    @:         exit
+    } if (var.VLAN != "NA" ){
+    @:         sap @(var.Port):@(var.VLAN) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }} else {
+    @:         sap @(var.Port) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }}
+    @:         exit
+    @:     exit
+    }
+    }
+}@{
+    foreach(var var in Node.MG8VPRNsList){  
+	if (var.InterfaceType == "Loopback5" ){
+	if (var.UEIPPool != "yes" ){
+    @:     interface "@(var.InterfaceName)" create
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:         exit
+    }
+    @:         loopback
+	if (var.Lag != "NA"){
+    @:         ip-reassembly lag-@(var.Lag)
+	}
+    @:     exit
+    }}
+    }
+}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback5" ){
+	if (var.UEIPPool == "yes"){
+    @:     ip-local-pool "@(var.InterfaceName)" 
+	@:         remote
+    @:         ipv4-prefix @(var.Address)
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6-prefix @(var.IPv6Address)
+    }
+    @:     exit
+    }
+    }
+}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical5" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }
+	if (var.StaticRouteEntry != "NA"){
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical5" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+    if (var.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }} 
+    if (var.IPv6Address != "NA" ){ 
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback5" ){
+	if (var.UEIPPool == "yes"){
+    @:     static-route-entry @(var.Address) black-hole no shutdown	
+	if (var.IPv6Address != "NA" ){
+    @:     static-route-entry @(var.IPv6Address) black-hole no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical5" ){
+    if (var.VPRN != "NA" ){
+    @:     no shutdown
+   @:exit
+}}}}
+   
+
+@{
+    foreach(var var in Node.MG8VPRNsList){
+
+    if (var.InterfaceType == "Physical6" ){
+    if (var.VPRN != "NA" ){
+    @:vprn @(var.VPRN) name "@(var.VRFName)_@(var.VPRN)-Group-08" customer 1 create
+    @:     description "@(var.VRFName)"
+    if (var.VPRNExportName != "NA"){
+	@:     vrf-export "@(var.VPRNExportName)"
+    }
+    @:     ecmp 4
+    @:     autonomous-system @(var.localAS)
+    @:     route-distinguisher @(var.localAS):@(var.VPRN)
+    @:     mg-group 8 local-ecmp-egress
+    }
+    @:     interface "@(var.InterfaceName)" create
+    @:         enable-ingress-stats
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	if (var.IPMTU != "NA"){
+    @:         ip-mtu @(var.IPMTU)
+	}
+    @:         bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:             bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+    @:         exit
+    } if (var.VLAN != "NA" ){
+    @:         sap @(var.Port):@(var.VLAN) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }} else {
+    @:         sap @(var.Port) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }}
+    @:         exit
+    @:     exit
+    }
+    }
+}@{
+    foreach(var var in Node.MG8VPRNsList){  
+	if (var.InterfaceType == "Loopback6" ){
+	if (var.UEIPPool != "yes" ){
+    @:     interface "@(var.InterfaceName)" create
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:         exit
+    }
+    @:         loopback
+	if (var.Lag != "NA"){
+    @:         ip-reassembly lag-@(var.Lag)
+	}
+    @:     exit
+    }}
+    }
+}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback6" ){
+	if (var.UEIPPool == "yes"){
+    @:     ip-local-pool "@(var.InterfaceName)" 
+	@:         remote
+    @:         ipv4-prefix @(var.Address)
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6-prefix @(var.IPv6Address)
+    }
+    @:     exit
+    }
+    }
+}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical6" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }
+	if (var.StaticRouteEntry != "NA"){
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical6" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+    if (var.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }} 
+    if (var.IPv6Address != "NA" ){ 
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback6" ){
+	if (var.UEIPPool == "yes"){
+    @:     static-route-entry @(var.Address) black-hole no shutdown	
+	if (var.IPv6Address != "NA" ){
+    @:     static-route-entry @(var.IPv6Address) black-hole no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical6" ){
+    if (var.VPRN != "NA" ){
+    @:     no shutdown
+   @:exit
+}}}}
+   
+   
+
+@{
+    foreach(var var in Node.MG8VPRNsList){
+
+    if (var.InterfaceType == "Physical7" ){
+    if (var.VPRN != "NA" ){
+    @:vprn @(var.VPRN) name "@(var.VRFName)_@(var.VPRN)-Group-08" customer 1 create
+    @:     description "@(var.VRFName)"
+    if (var.VPRNExportName != "NA"){
+	@:     vrf-export "@(var.VPRNExportName)"
+    }
+    @:     ecmp 4
+    @:     autonomous-system @(var.localAS)
+    @:     route-distinguisher @(var.localAS):@(var.VPRN)
+    @:     mg-group 8 local-ecmp-egress
+    }
+    @:     interface "@(var.InterfaceName)" create
+    @:         enable-ingress-stats
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	if (var.IPMTU != "NA"){
+    @:         ip-mtu @(var.IPMTU)
+	}
+    @:         bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:             bfd @(var.tx) receive @(var.rcv) multiplier @(var.multiplier)
+    @:         exit
+    } if (var.VLAN != "NA" ){
+    @:         sap @(var.Port):@(var.VLAN) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }} else {
+    @:         sap @(var.Port) create
+	if (var.IPfilter != "NA"){
+    @:             ingress
+    @:                  filter ipv6 @(var.IPfilter)
+    @:             exit	
+    }}
+    @:         exit
+    @:     exit
+    }
+    }
+}@{
+    foreach(var var in Node.MG8VPRNsList){  
+	if (var.InterfaceType == "Loopback7" ){
+	if (var.UEIPPool != "yes" ){
+    @:     interface "@(var.InterfaceName)" create
+    @:         description "@(var.Description)"
+	if (var.Address != "NA"){
+    @:         address @(var.Address)
+	}
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6
+    @:             address @(var.IPv6Address)
+    @:         exit
+    }
+    @:         loopback
+	if (var.Lag != "NA"){
+    @:         ip-reassembly lag-@(var.Lag)
+	}
+    @:     exit
+    }}
+    }
+}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback7" ){
+	if (var.UEIPPool == "yes"){
+    @:     ip-local-pool "@(var.InterfaceName)"
+	@:         remote	
+    @:         ipv4-prefix @(var.Address)
+    if (var.IPv6Address != "NA" ){
+    @:         ipv6-prefix @(var.IPv6Address)
+    }
+    @:     exit
+    }
+    }
+}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical7" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv4 Configuration"
+	@: #--------------------------------------------------
+    }
+	if (var.StaticRouteEntry != "NA"){
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.StaticRouteEntry) next-hop @(var.StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical7" ){
+	if (var.RoutingType == "Static" ){
+    if (var.VPRN != "NA"){
+    if (var.IPv6Address != "NA" ){
+	@: #--------------------------------------------------
+	@:  echo "Static Routing Ipv6 Configuration"
+	@: #--------------------------------------------------
+    }} 
+    if (var.IPv6Address != "NA" ){ 
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) bfd-enable
+    @:     static-route-entry @(var.IPv6StaticRouteEntry) next-hop @(var.IPv6StaticRouteNextHop) no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback7" ){
+	if (var.UEIPPool == "yes"){
+    @:     static-route-entry @(var.Address) black-hole no shutdown	
+	if (var.IPv6Address != "NA" ){
+    @:     static-route-entry @(var.IPv6Address) black-hole no shutdown
+}}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical7" ){
+    if (var.VPRN != "NA" ){
+    @:     no shutdown
+   @:exit
+}}}}
+exit
+
+
+#--------------------------------------------------
+echo "MG8 Policy Configuration"
+#--------------------------------------------------
+
+
+
+@{ 
+ foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical1"){
+    if (var.VPRN != "NA" ){
+  @:router
+    @:     policy-options
+    @:        begin 
+	}}}}@{ 
+ foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical1"){
+    if (var.VPRN != "NA" ){
+    @:           prefix-list "prefix_vprn@(var.VPRN)"	
+    @:	         exit
+	}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback1"){
+    if (var.AddinPrefixlist == "yes"){
+    @:           prefix-list "@(var.PrefixlistName)"
+    if (var.Address != "NA"){
+    @:               prefix @(var.Address) exact
+}	
+    if (var.IPv6Address != "NA"){
+    @:               prefix @(var.IPv6Address) exact
+}           
+    @:           exit
+    }}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical1"){
+    if (var.VPRN != "NA" ){
+	if (var.VPRNExportName != "NA"){
+    @:           community "VPRN@(var.VPRN)_Active" members "target:1:@(var.VPRN)"			
+    @:           community "VPRN@(var.VPRN)_Standby" members "target:1:@(var.VPRN)2"
+    @:           policy-statement "@(var.VPRNExportName)"
+    @:               description "Export VPRN_@(var.VPRN)-MGGrp1-Loopbacks Into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 17
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Active"
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 18
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Standby"
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+	
+	if (var.Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export"
+    @:               description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                       family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                       next-hop @(var.nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }if (var.IPv6Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export_ipv6"
+    @:               description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                       family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                       next-hop @(var.IPv6nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.IPv6nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }} if (var.AssociatedLBVPRN != "NA") {
+    @:           policy-statement "@(var.VRFImportName)"
+    @:               description "Import the  @(var.VRFName) VPRN-Loopbacks into Control-LB-VPRN"
+    @:               entry 800
+    @:                  from
+    @:                      community expression "[VPRN@(var.VPRN)_Active] OR [VPRN@(var.VPRN)_Standby]"
+    @:                  exit
+    @:                  action accept
+    @:                  exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+    }
+    }
+    }
+}}
+
+@{ 
+ foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical2"){
+    if (var.VPRN != "NA" ){
+    @:           prefix-list "prefix_vprn@(var.VPRN)"	
+    @:	         exit
+	}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback2"){
+    if (var.AddinPrefixlist == "yes"){
+    @:           prefix-list "@(var.PrefixlistName)"
+    if (var.Address != "NA"){
+    @:               prefix @(var.Address) exact
+}	
+    if (var.IPv6Address != "NA"){
+    @:               prefix @(var.IPv6Address) exact
+}           
+    @:           exit
+    }}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical2"){
+    if (var.VPRN != "NA" ){	
+	if (var.VPRNExportName != "NA"){
+    @:           community "VPRN@(var.VPRN)_Active" members "target:1:@(var.VPRN)"			
+    @:           community "VPRN@(var.VPRN)_Standby" members "target:1:@(var.VPRN)2"
+    @:           policy-statement "@(var.VPRNExportName)"
+    @:               description "Export VPRN_@(var.VPRN)-MGGrp1-Loopbacks Into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 17
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Active"
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 18
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Standby"
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+	
+	if (var.Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export"
+    @:               description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                      family ipv4
+    @:                   exit
+    @:                  action accept
+    @:                       next-hop @(var.nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                      next-hop @(var.nexthop2)
+    @:                   exit
+    @:               exit
+    @:           exit
+    }if (var.IPv6Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export_ipv6"
+    @:               description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                       family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                       next-hop @(var.IPv6nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.IPv6nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }} if (var.AssociatedLBVPRN != "NA") {
+    @:           policy-statement "@(var.VRFImportName)"
+    @:               description "Import the  @(var.VRFName) VPRN-Loopbacks into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       community expression "[VPRN@(var.VPRN)_Active] OR [VPRN@(var.VPRN)_Standby]"
+    @:                   exit
+    @:                   action accept
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+    }
+    }
+    }
+}}
+@{ 
+ foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical3"){
+    if (var.VPRN != "NA" ){
+    @:           prefix-list "prefix_vprn@(var.VPRN)"	
+    @:	         exit
+	}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback3"){
+    if (var.AddinPrefixlist == "yes"){
+    @:           prefix-list "@(var.PrefixlistName)"
+    if (var.Address != "NA"){
+    @:               prefix @(var.Address) exact
+}	
+    if (var.IPv6Address != "NA"){
+    @:               prefix @(var.IPv6Address) exact
+}           
+    @:           exit
+    }}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical3"){
+    if (var.VPRN != "NA" ){
+	if (var.VPRNExportName != "NA"){
+    @:           community "VPRN@(var.VPRN)_Active" members "target:1:@(var.VPRN)"			
+    @:           community "VPRN@(var.VPRN)_Standby" members "target:1:@(var.VPRN)2"
+    @:           policy-statement "@(var.VPRNExportName)"
+    @:               description "Export VPRN_@(var.VPRN)-MGGrp1-Loopbacks Into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 17
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Active"
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 18
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Standby"
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+	
+	if (var.Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export"
+    @:               description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                      family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                       next-hop @(var.nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }if (var.IPv6Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export_ipv6"
+    @:               description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                       family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                       next-hop @(var.IPv6nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.IPv6nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }} if (var.AssociatedLBVPRN != "NA") {
+    @:           policy-statement "@(var.VRFImportName)"
+    @:               description "Import the  @(var.VRFName) VPRN-Loopbacks into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       community expression "[VPRN@(var.VPRN)_Active] OR [VPRN@(var.VPRN)_Standby]"
+    @:                   exit
+    @:                   action accept
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+    }
+    }
+    }
+}}
+
+@{ 
+ foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical4"){
+    if (var.VPRN != "NA" ){
+    @:           prefix-list "prefix_vprn@(var.VPRN)"	
+    @:	         exit
+	}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback4"){
+    if (var.AddinPrefixlist == "yes"){
+    @:           prefix-list "@(var.PrefixlistName)"
+    if (var.Address != "NA"){
+    @:               prefix @(var.Address) exact
+}	
+    if (var.IPv6Address != "NA"){
+    @:               prefix @(var.IPv6Address) exact
+}           
+    @:           exit
+    }}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical4"){
+    if (var.VPRN != "NA" ){
+	if (var.VPRNExportName != "NA"){
+    @:           community "VPRN@(var.VPRN)_Active" members "target:1:@(var.VPRN)"			
+    @:           community "VPRN@(var.VPRN)_Standby" members "target:1:@(var.VPRN)2"
+    @:           policy-statement "@(var.VPRNExportName)"
+    @:               description "Export VPRN_@(var.VPRN)-MGGrp1-Loopbacks Into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 17
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Active"
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 18
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Standby"
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+	
+	if (var.Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export"
+    @:              description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                      family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                      next-hop @(var.nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                      next-hop @(var.nexthop2)
+    @:                   exit
+    @:               exit
+    @:           exit
+    }if (var.IPv6Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export_ipv6"
+    @:               description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                       family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                       next-hop @(var.IPv6nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.IPv6nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }} if (var.AssociatedLBVPRN != "NA") {
+    @:           policy-statement "@(var.VRFImportName)"
+    @:               description "Import the  @(var.VRFName) VPRN-Loopbacks into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       community expression "[VPRN@(var.VPRN)_Active] OR [VPRN@(var.VPRN)_Standby]"
+    @:                   exit
+    @:                   action accept
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+    }
+    }
+    }
+}}
+
+@{ 
+ foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical5"){
+    if (var.VPRN != "NA" ){
+    @:           prefix-list "prefix_vprn@(var.VPRN)"	
+    @:	         exit
+	}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback5"){
+    if (var.AddinPrefixlist == "yes"){
+    @:           prefix-list "@(var.PrefixlistName)"
+    if (var.Address != "NA"){
+    @:               prefix @(var.Address) exact
+}	
+    if (var.IPv6Address != "NA"){
+    @:               prefix @(var.IPv6Address) exact
+}           
+    @:           exit
+    }}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical5"){
+    if (var.VPRN != "NA" ){
+	if (var.VPRNExportName != "NA"){
+    @:           community "VPRN@(var.VPRN)_Active" members "target:1:@(var.VPRN)"			
+    @:           community "VPRN@(var.VPRN)_Standby" members "target:1:@(var.VPRN)2"
+    @:           policy-statement "@(var.VPRNExportName)"
+    @:               description "Export VPRN_@(var.VPRN)-MGGrp1-Loopbacks Into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 17
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Active"
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 18
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Standby"
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+	
+	if (var.Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export"
+    @:              description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                     family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                      next-hop @(var.nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }if (var.IPv6Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export_ipv6"
+    @:               description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                       family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                       next-hop @(var.IPv6nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.IPv6nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }} if (var.AssociatedLBVPRN != "NA") {
+    @:           policy-statement "@(var.VRFImportName)"
+    @:               description "Import the  @(var.VRFName) VPRN-Loopbacks into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       community expression "[VPRN@(var.VPRN)_Active] OR [VPRN@(var.VPRN)_Standby]"
+    @:                   exit
+    @:                   action accept
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+    }}}}}
+	@{ 
+ foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical6"){
+    if (var.VPRN != "NA" ){
+    @:           prefix-list "prefix_vprn@(var.VPRN)"	
+    @:	         exit
+	}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback6"){
+    if (var.AddinPrefixlist == "yes"){
+    @:           prefix-list "@(var.PrefixlistName)"
+    if (var.Address != "NA"){
+    @:               prefix @(var.Address) exact
+}	
+    if (var.IPv6Address != "NA"){
+    @:               prefix @(var.IPv6Address) exact
+}           
+    @:           exit
+    }}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical6"){
+    if (var.VPRN != "NA" ){
+	if (var.VPRNExportName != "NA"){
+    @:           community "VPRN@(var.VPRN)_Active" members "target:1:@(var.VPRN)"			
+    @:           community "VPRN@(var.VPRN)_Standby" members "target:1:@(var.VPRN)2"
+    @:           policy-statement "@(var.VPRNExportName)"
+    @:               description "Export VPRN_@(var.VPRN)-MGGrp1-Loopbacks Into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 17
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Active"
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 18
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Standby"
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+	
+	if (var.Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export"
+    @:              description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                     family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                      next-hop @(var.nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }if (var.IPv6Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export_ipv6"
+    @:               description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                       family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                       next-hop @(var.IPv6nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.IPv6nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }} if (var.AssociatedLBVPRN != "NA") {
+    @:           policy-statement "@(var.VRFImportName)"
+    @:               description "Import the  @(var.VRFName) VPRN-Loopbacks into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       community expression "[VPRN@(var.VPRN)_Active] OR [VPRN@(var.VPRN)_Standby]"
+    @:                   exit
+    @:                   action accept
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+    }}}}}
+	@{ 
+ foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical7"){
+    if (var.VPRN != "NA" ){
+    @:           prefix-list "prefix_vprn@(var.VPRN)"	
+    @:	         exit
+	}}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Loopback7"){
+    if (var.AddinPrefixlist == "yes"){
+    @:           prefix-list "@(var.PrefixlistName)"
+    if (var.Address != "NA"){
+    @:               prefix @(var.Address) exact
+}	
+    if (var.IPv6Address != "NA"){
+    @:               prefix @(var.IPv6Address) exact
+}           
+    @:           exit
+    }}}}@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical7"){
+    if (var.VPRN != "NA" ){
+	if (var.VPRNExportName != "NA"){
+    @:           community "VPRN@(var.VPRN)_Active" members "target:1:@(var.VPRN)"			
+    @:           community "VPRN@(var.VPRN)_Standby" members "target:1:@(var.VPRN)2"
+    @:           policy-statement "@(var.VPRNExportName)"
+    @:               description "Export VPRN_@(var.VPRN)-MGGrp1-Loopbacks Into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 17
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Active"
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                   from
+    @:                       prefix-list  "@(var.PrefixlistName)"
+    @:                       active-mg 18
+    @:                   exit
+    @:                   action accept
+    @:                       community add "VPRN@(var.VPRN)_Standby"
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+	
+	if (var.Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export"
+    @:              description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                     family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                      next-hop @(var.nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }if (var.IPv6Address != "NA"){
+    @:           policy-statement "vprn@(var.AssociatedLBVPRN)_bgp_export_ipv6"
+    @:               description "Import the Data-VPRN_@(var.VPRN)-Loopbacks into Control-LB-VPRN-@(var.AssociatedLBVPRN)"
+    @:               entry 800
+    @:                   description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Loopbacks to be reached From SR via ActiveVM-Lo1"
+    @:                   from
+    @:                      community "VPRN@(var.VPRN)_Active"
+    @:                       family ipv4
+    @:                   exit
+    @:                   action accept
+    @:                       next-hop @(var.IPv6nexthop1)
+    @:                   exit
+    @:               exit
+    @:               entry 801
+    @:                  description "IPv6 Data-VPRN_@(var.VPRN)-MGGrp1-Los to be reached From SR via StandbyVM-Lo1"
+    @:                  from
+    @:                      community "VPRN@(var.VPRN)_Standby"
+    @:                      family ipv4
+    @:                  exit
+    @:                  action accept
+    @:                     next-hop @(var.IPv6nexthop2)
+    @:                  exit
+    @:               exit
+    @:           exit
+    }} if (var.AssociatedLBVPRN != "NA") {
+    @:           policy-statement "@(var.VRFImportName)"
+    @:               description "Import the  @(var.VRFName) VPRN-Loopbacks into Control-LB-VPRN"
+    @:               entry 800
+    @:                   from
+    @:                       community expression "[VPRN@(var.VPRN)_Active] OR [VPRN@(var.VPRN)_Standby]"
+    @:                   exit
+    @:                   action accept
+    @:                   exit
+    @:               exit
+    @:               default-action drop
+    @:               exit
+    @:           exit
+    }}}}}
+	
+	@{
+    foreach (var var in Node.MG8VPRNsList){  
+    if (var.InterfaceType == "Physical1"){
+    if (var.VPRN != "NA" ){
+    @:           commit
+    @:        exit
+    @:    exit	
+	}}}}  

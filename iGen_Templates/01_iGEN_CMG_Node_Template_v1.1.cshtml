@@ -1,0 +1,61 @@
+@{
+  var Node = Model;
+}
+
+#--------------------------------------------------
+echo "System Configuration"
+#--------------------------------------------------
+
+
+    system
+@{
+    if (Node.ID != "NA"){
+    @:    name "@(Node.ID)"
+    }
+    if (Node.Contact != "NA"){
+    @:    contact "@(Node.Contact)"
+    }
+    if (Node.Location != "NA"){
+    @:    location "@(Node.Location)"
+    }
+    if (Node.Coordinates != "NA"){
+    @:    coordinates "@(Node.Coordinates)"
+    }
+    @:    load-balancing
+    @:        l4-load-balancing
+    @:        lsr-load-balancing lbl-ip
+    @:        system-ip-load-balancing
+    @:        service-id-lag-hashing
+    @:    exit
+    @:    rollback
+    @:        rollback-location "cf1:\rollback"
+    @:    exit
+    @:    snmp
+	@:        no shutdown
+    @:        streaming
+    @:            no shutdown
+    @:        exit
+    @:        packet-size 9216
+    @:    exit
+    @:    time
+    @:        ntp
+    @:        no shutdown	
+    if (Node.Primary_Ntp != "NA"){
+    @:         server @(Node.Primary_Ntp) prefer
+    }
+    if (Node.Secondary_Ntp != "NA"){
+    @:         server @(Node.Secondary_Ntp)
+    @:         exit
+    }
+    @:        sntp
+    @:            shutdown
+    @:        exit
+    if (Node.TimeZone != "NA"){
+    @:        zone @(Node.TimeZone)
+    }
+    @:    exit
+    @:    thresholds
+    @:         kb-memory-use-alarm rising-threshold 13000000 falling-threshold 12999999 interval 60 
+    @:         kb-memory-use-warn rising-threshold 10500000 falling-threshold 10499999 interval 60 
+    @:    exit
+    }

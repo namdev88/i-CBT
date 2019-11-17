@@ -1,0 +1,181 @@
+@{
+  var Node = Model;
+}
+#--------------------------------------------------
+echo "Mobile Gateway Default Configuration"
+#--------------------------------------------------
+
+    mobile-gateway
+        profile
+@{  
+    foreach (var var in Node.MGDefaultList){  
+if (var.Interface == "sx"){
+@:            pfcp
+@:                pfcp-profile "@(var.ReferanceProfile)"
+@:                exit
+@:            exit
+} if (var.Interface == "gx"){
+@:            gx "@(var.ReferanceProfile)"
+@:                fh-session-no-resp continue
+@:                message ccr-i
+@:                    result-code-3xxx continue
+@:                    result-code-4xxx continue
+@:                    result-code-5xxx continue
+@:                    retry-count 1
+@:                    transaction-timer timeout-msec 3000
+@:                exit
+@:                message ccr-u
+@:                    result-code-3xxx continue
+@:                    result-code-4xxx continue
+@:                    result-code-5xxx continue
+@:                    retry-count 1
+@:                    transaction-timer timeout-msec 3000
+@:                exit
+@:                message ccr-t
+@:                    retry-count 1
+@:                    transaction-timer timeout-msec 3000
+@:                exit
+@:            exit
+} if (var.Interface == "s1-u"){
+@:            gtp "@(var.ReferanceProfile)"
+@:                ip-dscp 46
+@:            exit
+} if (var.Interface == "s5" && var.RefPointName == "default" && var.ReferanceProfile != "NA"){
+@:            gtp "@(var.ReferanceProfile)"
+@:                message-retransmit timeout-msec 3000 retry-count 1
+@:            exit
+}}}
+        exit
+     exit
+
+    mobile-gateway
+        pdn 1
+@{  
+    foreach (var DG1 in Node.MGDefaultList){  
+    if (DG1.NodeType == "SPGW"){
+    if ((DG1.Interface == "gx") || (DG1.Interface == "gy") || (DG1.Interface == "s6b")){
+   @:         @(DG1.Interface)
+   @:            interface
+   @:                diameter router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)"
+   @:             exit
+   @:         exit
+   } else if (DG1.Interface == "ga"){
+   @:         @(DG1.Interface)
+   @:            interface-gtp-prime router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)"
+   @:         exit
+   } else if (DG1.Interface == "s11"){
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            interface
+   @:                gtp-c router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)" s1-u "default"
+   @:             exit
+   @:         exit
+   } else if (DG1.Interface == "s1-u"){
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            interface
+   @:                gtp-u router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)"
+   @:             exit
+   @:         exit  
+   } else {
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            interface
+   @:                gtp-c router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)"
+   @:                gtp-u router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)"
+   @:             exit
+   @:         exit
+}} if (DG1.NodeType == "CPF") {
+   if ((DG1.Interface == "gx") || (DG1.Interface == "gy") || (DG1.Interface == "s6b")){  
+   @:         @(DG1.Interface)
+   @:            interface
+   @:                diameter router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)"
+   @:             exit
+   @:         exit
+   } if (DG1.Interface == "gx"){
+   @:         @(DG1.Interface)
+   @:            gx-profile "@(DG1.ReferanceProfile)"
+   @:         exit 
+   } else if (DG1.Interface == "ga"){
+   @:         @(DG1.Interface)
+   @:            gtp-prime-group "SGW-Ga-OFCS-Peer"
+   @:            interface-gtp-prime router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)"
+   @:         exit
+   } else if (DG1.Interface == "s11"){
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            interface
+   @:                gtp-c router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)" s1-u "default" interface-realm "@(DG1.InterfaceRealm)"
+   @:             exit
+   @:         exit
+   } else if (DG1.Interface == "s4") {
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            interface
+   @:                gtp-c router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)" s12 "default" interface-realm "@(DG1.InterfaceRealm)"
+   @:             exit
+   @:         exit
+    } else if (DG1.Interface == "sx") {
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            pfcp-association-list "UPF"
+   @:            interface
+   @:                pfcp router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)" 
+   @:             exit
+   @:                signaling
+   @:                    pfcp 
+   @:                        profile "@(DG1.ReferanceProfile)"
+   @:                    exit
+   @:                exit
+   @:         exit
+   } else if (DG1.Interface == "gn" || DG1.Interface == "gp" ){
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            interface
+   @:                gtp-c router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)" interface-realm "@(DG1.InterfaceRealm)"
+   @:             exit
+   @:         exit
+    } else if (DG1.RefPointName == "PGW-default") {
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            interface
+   @:                gtp-c router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)" interface-realm "@(DG1.InterfaceRealm)"
+   @:             exit
+   @:         exit
+   } else if (DG1.RefPointName  !="NA") {
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            interface
+   @:                gtp-c router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)" interface-realm "@(DG1.InterfaceRealm)"
+   @:             exit
+   @:                signaling
+   @:                    gtp-c
+   @:                        profile "@(DG1.ReferanceProfile)"
+   @:                  exit
+   @:               exit
+   @:            exit
+}} if (DG1.NodeType == "UPF") {
+   if (DG1.Interface == "sx"){
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            pfcp-association-list "CPF"
+   @:            interface
+   @:                pfcp router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)" 
+   @:                gtp-u router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)" 
+   @:             exit
+   @:                signaling
+   @:                    pfcp 
+   @:                        profile "@(DG1.ReferanceProfile)"
+   @:                    exit
+   @:                exit
+   @:         exit
+   } else if (DG1.Interface == "s1-u"){
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            interface
+   @:                gtp-u router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)" interface-realm "@(DG1.InterfaceRealm)"
+   @:             exit
+   @:                signaling
+   @:                    gtp-u
+   @:                        profile "@(DG1.ReferanceProfile)"
+   @:                    exit
+   @:                exit
+   @:             exit
+   } else {
+   @:         @(DG1.Interface) "@(DG1.RefPointName)"
+   @:            interface
+   @:                gtp-u router "vprn@(DG1.LBVPRN)" "@(DG1.RefLoopbackInterface)" interface-realm "@(DG1.InterfaceRealm)"
+   @:             exit
+   @:         exit
+}}}}
+        exit
+     exit

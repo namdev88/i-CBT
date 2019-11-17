@@ -1,0 +1,47 @@
+@{
+    var Node = Model;
+}
+#--------------------------------------------------
+echo "Mobile Gateway  Diameter profile Configuration"
+#--------------------------------------------------
+  mobile-gateway
+     profile
+@{
+    foreach(var MG1 in Node.DiameterList){
+    if (MG1.ProfileDcca != "NA"){
+    @:    dcca "@MG1.ProfileDcca"
+    @:      application-tx-timer timeout-msec @(MG1.Applicationtxtimer)
+	@:      ccr-initial-on-first-pkt
+    @:      failure-handling
+    @:          mscc-result-code 4012
+    @:             service-delay-timer 1
+    @:          exit
+    @:          result-code-5xxx terminate
+    @:      exit
+    @:      service-context-id "@(MG1.Servicecontextid)"
+	@:      gy-avp-options-profile 1
+	@:      usu-reporting-enh
+    @:    exit
+    }if (MG1.SigRateLimitProfile != "NA"){
+    @:    sig-rate-limit-profile "@(MG1.SigRateLimitProfile)"
+    @:       max-message-rate @(MG1.MaxMessageRate)
+    @:       delay-tolerance @(MG1.DelayTolerance)
+    @:    exit	
+    }}}@{
+	foreach(var MG1 in Node.DiameterList){
+	if (MG1.Diameterpeer != "NA"){
+    @:    diameter-peer "@(MG1.Diameterpeer)"
+	@:         application-type @(MG1.ApplicationType)
+    @:         destination-realm "@(MG1.DestinationRealm)"
+	@:         diameter-profile "@(MG1.DiameterProfile)"
+	if (MG1.SigRateLimitProfile != "NA"){
+	@:         sig-rate-limit-profile "@(MG1.SigRateLimitProfile)"
+	}
+    @:         interface router "vprn@(MG1.Vprn)" "@(MG1.SourceIP)"
+    @:         peer @(MG1.DiaPeerip) port @(MG1.DiaPort)
+	@:            no shutdown
+    @:         exit
+    @:    exit
+    }}}
+     exit
+  exit
