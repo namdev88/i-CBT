@@ -1,0 +1,41 @@
+@{
+  var Node = Model.Item;
+}
+
+####################################################
+echo "iCBT - iGEN CMG Configuration Tool "
+echo "Version - 1.0 "
+echo "Customer - OneWeb "
+echo "Site - Miami "
+echo "Created By - Akash Namdev "
+echo "Contact - I_GNE_TOOLS_SUPPORT@internal.nsn.com "
+echo "Team - ION SBU India Team "
+####################################################
+
+
+
+exit all
+configure
+
+
+
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\01_iGEN_CMG_Node_Template_v1.1.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\02_iGEN_CMG_Security_Template_v1.1.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\03_iGEN_CMG_Logs_Template_v1.1.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\04_iGEN_CMG_KPILogs_Template.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\05_iGEN_CMG_Cards_Template.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\06_iGEN_CMG_Ports_Template_v1.1.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\33_iGEN_CMG_BASE_Template.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\08_iGEN_CMG_LBVPRN_Template_v1.1.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\10_iGEN_CMG_MG1VPRNs_Template_v1.1.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\21_iGEN_CMG_MG_Basic_Template.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\22_iGEN_CMG_MG_Diameter_Template.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\23_iGEN_CMG_MG_Charging_Template.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\27_iGEN_CMG_MG_APN_Template.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\32_iGEN_CMG_MG_Extra_SPGW.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\28_iGEN_CMG_MGDefault_Template.cshtml", Node, null)
+@Include(@"C:\Alcatel-Lucent\i-GEN\projects\OneWeb\Config Templates\29_iGEN_CMG_MGsSpecific_Template.cshtml", Node, null)
+
+mobile-gateway pdn 1 no shutdown
+
+exit all
