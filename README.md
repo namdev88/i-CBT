@@ -1,3 +1,9 @@
 # i-CBT
 iGen based Configuration generation of 7750 SRMG and CMG.
-v2.0 is bascially containing 5G related changes
+
+Customer :- OneWeb
+Location :- USA
+CMG :- Non CUPS
+Solution :- 4G
+Approx sites :- 10+
+
