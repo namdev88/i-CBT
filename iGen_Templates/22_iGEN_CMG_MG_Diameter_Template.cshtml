@@ -8,9 +8,11 @@ echo "Mobile Gateway  Diameter profile Configuration"
      profile
 @{
     foreach(var MG1 in Node.DiameterList){
-    if (MG1.ProfileDcca != "NA"){
+      if (MG1.ProfileDcca != "NA"){
     @:    dcca "@MG1.ProfileDcca"
+	  if (MG1.Applicationtxtimer != "NA" {
     @:      application-tx-timer timeout-msec @(MG1.Applicationtxtimer)
+	  }
 	@:      ccr-initial-on-first-pkt
     @:      failure-handling
     @:          mscc-result-code 4012
@@ -18,9 +20,10 @@ echo "Mobile Gateway  Diameter profile Configuration"
     @:          exit
     @:          result-code-5xxx terminate
     @:      exit
+	  if (MG1.Servicecontextid != "NA"){
     @:      service-context-id "@(MG1.Servicecontextid)"
+	  }
 	@:      gy-avp-options-profile 1
-	@:      usu-reporting-enh
     @:    exit
     }if (MG1.SigRateLimitProfile != "NA"){
     @:    sig-rate-limit-profile "@(MG1.SigRateLimitProfile)"
